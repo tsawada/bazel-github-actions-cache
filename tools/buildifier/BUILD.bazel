@@ -1,0 +1,22 @@
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+
+alias(
+    name = "buildifier",
+    actual = ":fix",
+)
+
+buildifier(
+    name = "fix",
+    lint_mode = "fix",
+)
+
+buildifier(
+    name = "check",
+    lint_mode = "warn",
+    mode = "check",
+)
+
+buildifier(
+    name = "diff",
+    mode = "diff",
+)

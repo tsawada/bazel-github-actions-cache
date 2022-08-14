@@ -1,0 +1,26 @@
+# flags recommended in https://blog.aspect.dev/bazelrc-flags
+build --sandbox_default_allow_network=false
+test --incompatible_exclusive_test_sandboxed
+build --incompatible_strict_action_env
+build --nolegacy_external_runfiles
+startup --host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1
+build --experimental_remote_merkle_tree_cache
+build --remote_local_fallback
+build --heap_dump_on_oom
+build --incompatible_remote_results_ignore_disk
+build --incompatible_default_to_explicit_init_py
+build --noexperimental_check_output_files
+test --test_verbose_timeout_warnings
+build --incompatible_remote_build_event_upload_respect_no_cache
+build --experimental_reuse_sandbox_directories
+
+build --experimental_inprocess_symlink_creation
+test --build_tests_only
+
+build --sandbox_fake_hostname --sandbox_fake_username
+
+build --experimental_allow_tags_propagation
+
+build --experimental_repository_cache_hardlinks
+
+try-import %workspace%/.bazelrc.user
