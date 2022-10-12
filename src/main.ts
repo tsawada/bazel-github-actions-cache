@@ -22,8 +22,8 @@ function main() {
     let n_hit: number = 0;
     let n_miss: number = 0;
 
-    const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3055';
-    const baseUrl = `${ actions_cache_url }/_apis/artifactcache/`;
+    const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
+    const baseUrl = `${ actions_cache_url }_apis/artifactcache/`;
     const token = process.env.ACTIONS_RUNTIME_TOKEN;
     console.log(`baseUrl: ${ baseUrl }`);
 
@@ -55,6 +55,10 @@ function main() {
                     response.writeHead(404);
                     response.end();
                 }
+            }).on('error', (e) => {
+                console.log(e);
+                response.writeHead(404);
+                response.end();
             });
         } else {
             n_req += 1;
