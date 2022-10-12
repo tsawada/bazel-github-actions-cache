@@ -38,7 +38,6 @@ function main() {
             response.end();
         } else if (url.pathname.startsWith('/cas/')) {
             n_req += 1;
-            console.log(url.pathname);
             const hash = url.pathname.substring(5);
             http.get(baseUrl + 'cache?key=cas-' + hash, {
                 headers: {
@@ -56,7 +55,6 @@ function main() {
                     response.end();
                 }
             }).on('error', (e) => {
-                console.log(e);
                 response.writeHead(404);
                 response.end();
             });
