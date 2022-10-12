@@ -22,18 +22,23 @@ function main() {
     let n_hit: number = 0;
     let n_miss: number = 0;
 
-    const baseUrl = process.env.ACTIONS_CACHE_URL + '/_apis/artifactcache/';
+    const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3055';
+    const baseUrl = `${ actions_cache_url }/_apis/artifactcache/`;
     const token = process.env.ACTIONS_RUNTIME_TOKEN;
+    console.log(`baseUrl: ${ baseUrl }`);
 
     server.on('request', (request, response) => {
         const url = parse(request.url);
-        console.log(url.pathname);
         if (url.pathname == '/close') {
             server.close();
             response.writeHead(200);
             response.end(`Stats: ${ n_hit } / ${ n_req } == ${ n_hit * 100 / (n_req? n_req: 1) }%`);
+        } else if (url.pathname.startsWith('/_apis/artifactcache/')) {
+            response.writeHead(404);
+            response.end();
         } else if (url.pathname.startsWith('/cas/')) {
             n_req += 1;
+            console.log(url.pathname);
             const hash = url.pathname.substring(5);
             http.get(baseUrl + 'cache?key=cas-' + hash, {
                 headers: {
