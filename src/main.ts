@@ -5,6 +5,7 @@ import { spawn } from 'child_process'
 console.log("hello, world!");
 
 if (!process.env.IS_BACKGROUND) {
+    /*
     console.log('spawning');
     const child = spawn(process.execPath, process.argv.slice(1), {
         detached: true,
@@ -12,6 +13,31 @@ if (!process.env.IS_BACKGROUND) {
         env: {...process.env, IS_BACKGROUND: '1'}
     });
     child.unref();
+    */
+    const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
+    const baseUrl = `${ actions_cache_url }_apis/artifactcache/`;
+    const token = process.env.ACTIONS_RUNTIME_TOKEN;
+    console.log(`baseUrl: ${ baseUrl }`);
+    const pathname = '/cas/13526f764a3b4aeafcb6b0fde3da6069821ee611fd2fbc83fd2f01ea10617fee';
+    const hash = pathname.substring(5);
+    http.get(baseUrl + 'cache?key=cas-' + hash, {
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    },
+    (r) => {
+        /*
+        if (200 <= r.statusCode && r.statusCode < 300) {
+            n_hit += 1;
+            response.writeHead(200);
+            r.pipe(response);
+        } else {
+            */
+            r.resume();
+        //}
+    }).on('error', (e) => {
+        console.log(e);
+    });
 } else {
     main();
 }
