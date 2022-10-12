@@ -3,12 +3,14 @@ import * as https from 'https'
 import { parse } from 'url'
 import { spawn } from 'child_process'
 import { HttpClient } from '@actions/http-client'
+import * as core from '@actions/core'
 import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 
 console.log("hello, world!");
 
 if (!process.env.IS_BACKGROUND) {
     console.log('spawning');
+    debug('foreground')
     const child = spawn(process.execPath, process.argv.slice(1), {
         detached: true,
         stdio: 'inherit',
@@ -46,6 +48,10 @@ function isSuccessfulStatusCode(statusCode?: number): boolean {
     }
     return 200 <= statusCode && statusCode < 300
 }
+let errorBuffer = []
+function debug(message: string) {
+    errorBuffer.push(message)
+}
 
 async function putCache(httpClient: HttpClient, baseUrl: string, type: string, hash: string, size: number, stream: NodeJS.ReadableStream): Promise<boolean> {
     const key = `${type}-${hash}`
@@ -58,6 +64,7 @@ async function putCache(httpClient: HttpClient, baseUrl: string, type: string, h
     const r = await httpClient.postJson<ReserveCacheResponse>(`${baseUrl}caches`, reserveCacheRequest)
     const cacheId = r?.result?.cacheId
     if (!cacheId) {
+        debug(`ReserveCache failed: ${r.statusCode}`)
         return false;
     }
     const upload = await httpClient.sendStream('PATCH', `${baseUrl}caches/${cacheId}`, stream, {
@@ -65,17 +72,19 @@ async function putCache(httpClient: HttpClient, baseUrl: string, type: string, h
         'Content-Range': `bytes 0-${size-1}/*`
     })
     if (!isSuccessfulStatusCode(upload.message.statusCode)) {
+        debug(`Upload failed: ${upload.message.statusMessage}`)
         return false
     }
     const commitCacheRequest: CommitCacheRequest = { size: size }
     const commit = await httpClient.postJson<null>(`${baseUrl}caches/${cacheId}`, commitCacheRequest)
     if (!isSuccessfulStatusCode(commit.statusCode)) {
+        core.debug(`Commit failed: ${commit.statusCode}`)
         return false
     }
     return true
 }
 
-async function getCache(httpClient: HttpClient, baseUrl: string, type: string, hash: string): Promise<NodeJS.ReadableStream> {
+async function getCache(httpClient: HttpClient, baseUrl: string, type: string, hash: string): Promise<NodeJS.ReadableStream | null> {
     const key = `${type}-${hash}`
     const version = 'b'
 
@@ -121,7 +130,7 @@ function main() {
         if (url.pathname == '/close') {
             server.close();
             response.writeHead(200);
-            response.end(`Stats: ${n_get_hit} / ${n_get} == ${n_get_hit * 100 / (n_get? n_get: 1)}%, Upload: ${n_put_succ} / ${n_put}, ${n_put_bytes} bytes`);
+            response.end(`Stats: ${n_get_hit} / ${n_get} == ${n_get_hit * 100 / (n_get? n_get: 1)}%, Upload: ${n_put_succ} / ${n_put}, ${n_put_bytes} bytes\n` + errorBuffer.join('\n'));
         } else if (url.pathname.startsWith('/_apis/artifactcache/')) {
             response.writeHead(404);
             response.end();
@@ -136,7 +145,7 @@ function main() {
                 try {
                     succ = await putCache(httpClient, baseUrl, type, hash, size, request)
                 } catch (e) {
-                    // nothing
+                    debug("put exc: " + e.message)
                 }
                 if (succ) {
                     n_put_succ += 1
@@ -148,11 +157,11 @@ function main() {
                 response.end()
             } else if (request.method == 'GET') {
                 n_get += 1
-                let stream: NodeJS.ReadableStream
+                let stream: NodeJS.ReadableStream | null
                 try {
                     stream = await getCache(httpClient, baseUrl, type, hash)
                 } catch (e) {
-                    // nothing
+                    debug("get exc: " + e.message)
                 }
                 if (stream) {
                     n_get_hit += 1

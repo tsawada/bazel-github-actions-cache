@@ -11,6 +11,7 @@ ts_project(
     out_dir = "dist",
     deps = [
         "//:node_modules/@actions/http-client",
+        "//:node_modules/@actions/core",
         "//:node_modules/@types/node",
     ],
 )
