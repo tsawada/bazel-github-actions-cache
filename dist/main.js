@@ -1,2 +1,245 @@
-"use strict";var x=(r,e)=>()=>(e||r((e={exports:{}}).exports,e),e.exports);var ee=x(S=>{"use strict";Object.defineProperty(S,"__esModule",{value:!0});S.checkBypass=S.getProxyUrl=void 0;function de(r){let e=r.protocol==="https:";if(Z(r))return;let t=(()=>e?process.env.https_proxy||process.env.HTTPS_PROXY:process.env.http_proxy||process.env.HTTP_PROXY)();if(t)return new URL(t)}S.getProxyUrl=de;function Z(r){if(!r.hostname)return!1;let e=process.env.no_proxy||process.env.NO_PROXY||"";if(!e)return!1;let t;r.port?t=Number(r.port):r.protocol==="http:"?t=80:r.protocol==="https:"&&(t=443);let n=[r.hostname.toUpperCase()];typeof t=="number"&&n.push(`${n[0]}:${t}`);for(let i of e.split(",").map(s=>s.trim().toUpperCase()).filter(s=>s))if(n.some(s=>s===i))return!0;return!1}S.checkBypass=Z});var se=x(q=>{"use strict";var Ie=require("net"),pe=require("tls"),I=require("http"),te=require("https"),ve=require("events"),ze=require("assert"),ge=require("util");q.httpOverHttp=ye;q.httpsOverHttp=me;q.httpOverHttps=we;q.httpsOverHttps=_e;function ye(r){var e=new R(r);return e.request=I.request,e}function me(r){var e=new R(r);return e.request=I.request,e.createSocket=re,e.defaultPort=443,e}function we(r){var e=new R(r);return e.request=te.request,e}function _e(r){var e=new R(r);return e.request=te.request,e.createSocket=re,e.defaultPort=443,e}function R(r){var e=this;e.options=r||{},e.proxyOptions=e.options.proxy||{},e.maxSockets=e.options.maxSockets||I.Agent.defaultMaxSockets,e.requests=[],e.sockets=[],e.on("free",function(n,i,s,a){for(var c=ne(i,s,a),l=0,o=e.requests.length;l<o;++l){var u=e.requests[l];if(u.host===c.host&&u.port===c.port){e.requests.splice(l,1),u.request.onSocket(n);return}}n.destroy(),e.removeSocket(n)})}ge.inherits(R,ve.EventEmitter);R.prototype.addRequest=function(e,t,n,i){var s=this,a=z({request:e},s.options,ne(t,n,i));if(s.sockets.length>=this.maxSockets){s.requests.push(a);return}s.createSocket(a,function(c){c.on("free",l),c.on("close",o),c.on("agentRemove",o),e.onSocket(c);function l(){s.emit("free",c,a)}function o(u){s.removeSocket(c),c.removeListener("free",l),c.removeListener("close",o),c.removeListener("agentRemove",o)}})};R.prototype.createSocket=function(e,t){var n=this,i={};n.sockets.push(i);var s=z({},n.proxyOptions,{method:"CONNECT",path:e.host+":"+e.port,agent:!1,headers:{host:e.host+":"+e.port}});e.localAddress&&(s.localAddress=e.localAddress),s.proxyAuth&&(s.headers=s.headers||{},s.headers["Proxy-Authorization"]="Basic "+new Buffer(s.proxyAuth).toString("base64")),A("making CONNECT request");var a=n.request(s);a.useChunkedEncodingByDefault=!1,a.once("response",c),a.once("upgrade",l),a.once("connect",o),a.once("error",u),a.end();function c(f){f.upgrade=!0}function l(f,h,g){process.nextTick(function(){o(f,h,g)})}function o(f,h,g){if(a.removeAllListeners(),h.removeAllListeners(),f.statusCode!==200){A("tunneling socket could not be established, statusCode=%d",f.statusCode),h.destroy();var b=new Error("tunneling socket could not be established, statusCode="+f.statusCode);b.code="ECONNRESET",e.request.emit("error",b),n.removeSocket(i);return}if(g.length>0){A("got illegal response body from proxy"),h.destroy();var b=new Error("got illegal response body from proxy");b.code="ECONNRESET",e.request.emit("error",b),n.removeSocket(i);return}return A("tunneling connection has established"),n.sockets[n.sockets.indexOf(i)]=h,t(h)}function u(f){a.removeAllListeners(),A(`tunneling socket could not be established, cause=%s
-`,f.message,f.stack);var h=new Error("tunneling socket could not be established, cause="+f.message);h.code="ECONNRESET",e.request.emit("error",h),n.removeSocket(i)}};R.prototype.removeSocket=function(e){var t=this.sockets.indexOf(e);if(t!==-1){this.sockets.splice(t,1);var n=this.requests.shift();n&&this.createSocket(n,function(i){n.request.onSocket(i)})}};function re(r,e){var t=this;R.prototype.createSocket.call(t,r,function(n){var i=r.request.getHeader("host"),s=z({},t.options,{socket:n,servername:i?i.replace(/:.*$/,""):r.host}),a=pe.connect(0,s);t.sockets[t.sockets.indexOf(n)]=a,e(a)})}function ne(r,e,t){return typeof r=="string"?{host:r,port:e,localAddress:t}:r}function z(r){for(var e=1,t=arguments.length;e<t;++e){var n=arguments[e];if(typeof n=="object")for(var i=Object.keys(n),s=0,a=i.length;s<a;++s){var c=i[s];n[c]!==void 0&&(r[c]=n[c])}}return r}var A;process.env.NODE_DEBUG&&/\btunnel\b/.test(process.env.NODE_DEBUG)?A=function(){var r=Array.prototype.slice.call(arguments);typeof r[0]=="string"?r[0]="TUNNEL: "+r[0]:r.unshift("TUNNEL:"),console.error.apply(console,r)}:A=function(){};q.debug=A});var oe=x((Fe,ie)=>{ie.exports=se()});var ce=x(d=>{"use strict";var Re=d&&d.__createBinding||(Object.create?function(r,e,t,n){n===void 0&&(n=t),Object.defineProperty(r,n,{enumerable:!0,get:function(){return e[t]}})}:function(r,e,t,n){n===void 0&&(n=t),r[n]=e[t]}),be=d&&d.__setModuleDefault||(Object.create?function(r,e){Object.defineProperty(r,"default",{enumerable:!0,value:e})}:function(r,e){r.default=e}),M=d&&d.__importStar||function(r){if(r&&r.__esModule)return r;var e={};if(r!=null)for(var t in r)t!=="default"&&Object.hasOwnProperty.call(r,t)&&Re(e,r,t);return be(e,r),e},p=d&&d.__awaiter||function(r,e,t,n){function i(s){return s instanceof t?s:new t(function(a){a(s)})}return new(t||(t=Promise))(function(s,a){function c(u){try{o(n.next(u))}catch(f){a(f)}}function l(u){try{o(n.throw(u))}catch(f){a(f)}}function o(u){u.done?s(u.value):i(u.value).then(c,l)}o((n=n.apply(r,e||[])).next())})};Object.defineProperty(d,"__esModule",{value:!0});d.HttpClient=d.isHttps=d.HttpClientResponse=d.HttpClientError=d.getProxyUrl=d.MediaTypes=d.Headers=d.HttpCodes=void 0;var P=M(require("http")),$=M(require("https")),ae=M(ee()),U=M(oe()),m;(function(r){r[r.OK=200]="OK",r[r.MultipleChoices=300]="MultipleChoices",r[r.MovedPermanently=301]="MovedPermanently",r[r.ResourceMoved=302]="ResourceMoved",r[r.SeeOther=303]="SeeOther",r[r.NotModified=304]="NotModified",r[r.UseProxy=305]="UseProxy",r[r.SwitchProxy=306]="SwitchProxy",r[r.TemporaryRedirect=307]="TemporaryRedirect",r[r.PermanentRedirect=308]="PermanentRedirect",r[r.BadRequest=400]="BadRequest",r[r.Unauthorized=401]="Unauthorized",r[r.PaymentRequired=402]="PaymentRequired",r[r.Forbidden=403]="Forbidden",r[r.NotFound=404]="NotFound",r[r.MethodNotAllowed=405]="MethodNotAllowed",r[r.NotAcceptable=406]="NotAcceptable",r[r.ProxyAuthenticationRequired=407]="ProxyAuthenticationRequired",r[r.RequestTimeout=408]="RequestTimeout",r[r.Conflict=409]="Conflict",r[r.Gone=410]="Gone",r[r.TooManyRequests=429]="TooManyRequests",r[r.InternalServerError=500]="InternalServerError",r[r.NotImplemented=501]="NotImplemented",r[r.BadGateway=502]="BadGateway",r[r.ServiceUnavailable=503]="ServiceUnavailable",r[r.GatewayTimeout=504]="GatewayTimeout"})(m=d.HttpCodes||(d.HttpCodes={}));var v;(function(r){r.Accept="accept",r.ContentType="content-type"})(v=d.Headers||(d.Headers={}));var O;(function(r){r.ApplicationJson="application/json"})(O=d.MediaTypes||(d.MediaTypes={}));function Ae(r){let e=ae.getProxyUrl(new URL(r));return e?e.href:""}d.getProxyUrl=Ae;var Oe=[m.MovedPermanently,m.ResourceMoved,m.SeeOther,m.TemporaryRedirect,m.PermanentRedirect],Se=[m.BadGateway,m.ServiceUnavailable,m.GatewayTimeout],qe=["OPTIONS","GET","DELETE","HEAD"],Te=10,Ee=5,T=class extends Error{constructor(e,t){super(e),this.name="HttpClientError",this.statusCode=t,Object.setPrototypeOf(this,T.prototype)}};d.HttpClientError=T;var B=class{constructor(e){this.message=e}readBody(){return p(this,void 0,void 0,function*(){return new Promise(e=>p(this,void 0,void 0,function*(){let t=Buffer.alloc(0);this.message.on("data",n=>{t=Buffer.concat([t,n])}),this.message.on("end",()=>{e(t.toString())})}))})}};d.HttpClientResponse=B;function xe(r){return new URL(r).protocol==="https:"}d.isHttps=xe;var F=class{constructor(e,t,n){this._ignoreSslError=!1,this._allowRedirects=!0,this._allowRedirectDowngrade=!1,this._maxRedirects=50,this._allowRetries=!1,this._maxRetries=1,this._keepAlive=!1,this._disposed=!1,this.userAgent=e,this.handlers=t||[],this.requestOptions=n,n&&(n.ignoreSslError!=null&&(this._ignoreSslError=n.ignoreSslError),this._socketTimeout=n.socketTimeout,n.allowRedirects!=null&&(this._allowRedirects=n.allowRedirects),n.allowRedirectDowngrade!=null&&(this._allowRedirectDowngrade=n.allowRedirectDowngrade),n.maxRedirects!=null&&(this._maxRedirects=Math.max(n.maxRedirects,0)),n.keepAlive!=null&&(this._keepAlive=n.keepAlive),n.allowRetries!=null&&(this._allowRetries=n.allowRetries),n.maxRetries!=null&&(this._maxRetries=n.maxRetries))}options(e,t){return p(this,void 0,void 0,function*(){return this.request("OPTIONS",e,null,t||{})})}get(e,t){return p(this,void 0,void 0,function*(){return this.request("GET",e,null,t||{})})}del(e,t){return p(this,void 0,void 0,function*(){return this.request("DELETE",e,null,t||{})})}post(e,t,n){return p(this,void 0,void 0,function*(){return this.request("POST",e,t,n||{})})}patch(e,t,n){return p(this,void 0,void 0,function*(){return this.request("PATCH",e,t,n||{})})}put(e,t,n){return p(this,void 0,void 0,function*(){return this.request("PUT",e,t,n||{})})}head(e,t){return p(this,void 0,void 0,function*(){return this.request("HEAD",e,null,t||{})})}sendStream(e,t,n,i){return p(this,void 0,void 0,function*(){return this.request(e,t,n,i)})}getJson(e,t={}){return p(this,void 0,void 0,function*(){t[v.Accept]=this._getExistingOrDefaultHeader(t,v.Accept,O.ApplicationJson);let n=yield this.get(e,t);return this._processResponse(n,this.requestOptions)})}postJson(e,t,n={}){return p(this,void 0,void 0,function*(){let i=JSON.stringify(t,null,2);n[v.Accept]=this._getExistingOrDefaultHeader(n,v.Accept,O.ApplicationJson),n[v.ContentType]=this._getExistingOrDefaultHeader(n,v.ContentType,O.ApplicationJson);let s=yield this.post(e,i,n);return this._processResponse(s,this.requestOptions)})}putJson(e,t,n={}){return p(this,void 0,void 0,function*(){let i=JSON.stringify(t,null,2);n[v.Accept]=this._getExistingOrDefaultHeader(n,v.Accept,O.ApplicationJson),n[v.ContentType]=this._getExistingOrDefaultHeader(n,v.ContentType,O.ApplicationJson);let s=yield this.put(e,i,n);return this._processResponse(s,this.requestOptions)})}patchJson(e,t,n={}){return p(this,void 0,void 0,function*(){let i=JSON.stringify(t,null,2);n[v.Accept]=this._getExistingOrDefaultHeader(n,v.Accept,O.ApplicationJson),n[v.ContentType]=this._getExistingOrDefaultHeader(n,v.ContentType,O.ApplicationJson);let s=yield this.patch(e,i,n);return this._processResponse(s,this.requestOptions)})}request(e,t,n,i){return p(this,void 0,void 0,function*(){if(this._disposed)throw new Error("Client has already been disposed.");let s=new URL(t),a=this._prepareRequest(e,s,i),c=this._allowRetries&&qe.includes(e)?this._maxRetries+1:1,l=0,o;do{if(o=yield this.requestRaw(a,n),o&&o.message&&o.message.statusCode===m.Unauthorized){let f;for(let h of this.handlers)if(h.canHandleAuthentication(o)){f=h;break}return f?f.handleAuthentication(this,a,n):o}let u=this._maxRedirects;for(;o.message.statusCode&&Oe.includes(o.message.statusCode)&&this._allowRedirects&&u>0;){let f=o.message.headers.location;if(!f)break;let h=new URL(f);if(s.protocol==="https:"&&s.protocol!==h.protocol&&!this._allowRedirectDowngrade)throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");if(yield o.readBody(),h.hostname!==s.hostname)for(let g in i)g.toLowerCase()==="authorization"&&delete i[g];a=this._prepareRequest(e,h,i),o=yield this.requestRaw(a,n),u--}if(!o.message.statusCode||!Se.includes(o.message.statusCode))return o;l+=1,l<c&&(yield o.readBody(),yield this._performExponentialBackoff(l))}while(l<c);return o})}dispose(){this._agent&&this._agent.destroy(),this._disposed=!0}requestRaw(e,t){return p(this,void 0,void 0,function*(){return new Promise((n,i)=>{function s(a,c){a?i(a):c?n(c):i(new Error("Unknown error"))}this.requestRawWithCallback(e,t,s)})})}requestRawWithCallback(e,t,n){typeof t=="string"&&(e.options.headers||(e.options.headers={}),e.options.headers["Content-Length"]=Buffer.byteLength(t,"utf8"));let i=!1;function s(l,o){i||(i=!0,n(l,o))}let a=e.httpModule.request(e.options,l=>{let o=new B(l);s(void 0,o)}),c;a.on("socket",l=>{c=l}),a.setTimeout(this._socketTimeout||3*6e4,()=>{c&&c.end(),s(new Error(`Request timeout: ${e.options.path}`))}),a.on("error",function(l){s(l)}),t&&typeof t=="string"&&a.write(t,"utf8"),t&&typeof t!="string"?(t.on("close",function(){a.end()}),t.pipe(a)):a.end()}getAgent(e){let t=new URL(e);return this._getAgent(t)}_prepareRequest(e,t,n){let i={};i.parsedUrl=t;let s=i.parsedUrl.protocol==="https:";i.httpModule=s?$:P;let a=s?443:80;if(i.options={},i.options.host=i.parsedUrl.hostname,i.options.port=i.parsedUrl.port?parseInt(i.parsedUrl.port):a,i.options.path=(i.parsedUrl.pathname||"")+(i.parsedUrl.search||""),i.options.method=e,i.options.headers=this._mergeHeaders(n),this.userAgent!=null&&(i.options.headers["user-agent"]=this.userAgent),i.options.agent=this._getAgent(i.parsedUrl),this.handlers)for(let c of this.handlers)c.prepareRequest(i.options);return i}_mergeHeaders(e){return this.requestOptions&&this.requestOptions.headers?Object.assign({},N(this.requestOptions.headers),N(e||{})):N(e||{})}_getExistingOrDefaultHeader(e,t,n){let i;return this.requestOptions&&this.requestOptions.headers&&(i=N(this.requestOptions.headers)[t]),e[t]||i||n}_getAgent(e){let t,n=ae.getProxyUrl(e),i=n&&n.hostname;if(this._keepAlive&&i&&(t=this._proxyAgent),this._keepAlive&&!i&&(t=this._agent),t)return t;let s=e.protocol==="https:",a=100;if(this.requestOptions&&(a=this.requestOptions.maxSockets||P.globalAgent.maxSockets),n&&n.hostname){let c={maxSockets:a,keepAlive:this._keepAlive,proxy:Object.assign(Object.assign({},(n.username||n.password)&&{proxyAuth:`${n.username}:${n.password}`}),{host:n.hostname,port:n.port})},l,o=n.protocol==="https:";s?l=o?U.httpsOverHttps:U.httpsOverHttp:l=o?U.httpOverHttps:U.httpOverHttp,t=l(c),this._proxyAgent=t}if(this._keepAlive&&!t){let c={keepAlive:this._keepAlive,maxSockets:a};t=s?new $.Agent(c):new P.Agent(c),this._agent=t}return t||(t=s?$.globalAgent:P.globalAgent),s&&this._ignoreSslError&&(t.options=Object.assign(t.options||{},{rejectUnauthorized:!1})),t}_performExponentialBackoff(e){return p(this,void 0,void 0,function*(){e=Math.min(Te,e);let t=Ee*Math.pow(2,e);return new Promise(n=>setTimeout(()=>n(),t))})}_processResponse(e,t){return p(this,void 0,void 0,function*(){return new Promise((n,i)=>p(this,void 0,void 0,function*(){let s=e.message.statusCode||0,a={statusCode:s,result:null,headers:{}};s===m.NotFound&&n(a);function c(u,f){if(typeof f=="string"){let h=new Date(f);if(!isNaN(h.valueOf()))return h}return f}let l,o;try{o=yield e.readBody(),o&&o.length>0&&(t&&t.deserializeDates?l=JSON.parse(o,c):l=JSON.parse(o),a.result=l),a.headers=e.message.headers}catch(u){}if(s>299){let u;l&&l.message?u=l.message:o&&o.length>0?u=o:u=`Failed request: (${s})`;let f=new T(u,s);f.result=a.result,i(f)}else n(a)}))})}};d.HttpClient=F;var N=r=>Object.keys(r).reduce((e,t)=>(e[t.toLowerCase()]=r[t],e),{})});var ue=x(w=>{"use strict";var X=w&&w.__awaiter||function(r,e,t,n){function i(s){return s instanceof t?s:new t(function(a){a(s)})}return new(t||(t=Promise))(function(s,a){function c(u){try{o(n.next(u))}catch(f){a(f)}}function l(u){try{o(n.throw(u))}catch(f){a(f)}}function o(u){u.done?s(u.value):i(u.value).then(c,l)}o((n=n.apply(r,e||[])).next())})};Object.defineProperty(w,"__esModule",{value:!0});w.PersonalAccessTokenCredentialHandler=w.BearerCredentialHandler=w.BasicCredentialHandler=void 0;var H=class{constructor(e,t){this.username=e,this.password=t}prepareRequest(e){if(!e.headers)throw Error("The request has no headers");e.headers.Authorization=`Basic ${Buffer.from(`${this.username}:${this.password}`).toString("base64")}`}canHandleAuthentication(){return!1}handleAuthentication(){return X(this,void 0,void 0,function*(){throw new Error("not implemented")})}};w.BasicCredentialHandler=H;var K=class{constructor(e){this.token=e}prepareRequest(e){if(!e.headers)throw Error("The request has no headers");e.headers.Authorization=`Bearer ${this.token}`}canHandleAuthentication(){return!1}handleAuthentication(){return X(this,void 0,void 0,function*(){throw new Error("not implemented")})}};w.BearerCredentialHandler=K;var W=class{constructor(e){this.token=e}prepareRequest(e){if(!e.headers)throw Error("The request has no headers");e.headers.Authorization=`Basic ${Buffer.from(`PAT:${this.token}`).toString("base64")}`}canHandleAuthentication(){return!1}handleAuthentication(){return X(this,void 0,void 0,function*(){throw new Error("not implemented")})}};w.PersonalAccessTokenCredentialHandler=W});var D=exports&&exports.__assign||function(){return D=Object.assign||function(r){for(var e,t=1,n=arguments.length;t<n;t++){e=arguments[t];for(var i in e)Object.prototype.hasOwnProperty.call(e,i)&&(r[i]=e[i])}return r},D.apply(this,arguments)},ke=exports&&exports.__awaiter||function(r,e,t,n){function i(s){return s instanceof t?s:new t(function(a){a(s)})}return new(t||(t=Promise))(function(s,a){function c(u){try{o(n.next(u))}catch(f){a(f)}}function l(u){try{o(n.throw(u))}catch(f){a(f)}}function o(u){u.done?s(u.value):i(u.value).then(c,l)}o((n=n.apply(r,e||[])).next())})},Pe=exports&&exports.__generator||function(r,e){var t={label:0,sent:function(){if(s[0]&1)throw s[1];return s[1]},trys:[],ops:[]},n,i,s,a;return a={next:c(0),throw:c(1),return:c(2)},typeof Symbol=="function"&&(a[Symbol.iterator]=function(){return this}),a;function c(o){return function(u){return l([o,u])}}function l(o){if(n)throw new TypeError("Generator is already executing.");for(;t;)try{if(n=1,i&&(s=o[0]&2?i.return:o[0]?i.throw||((s=i.return)&&s.call(i),0):i.next)&&!(s=s.call(i,o[1])).done)return s;switch(i=0,s&&(o=[o[0]&2,s.value]),o[0]){case 0:case 1:s=o;break;case 4:return t.label++,{value:o[1],done:!1};case 5:t.label++,i=o[1],o=[0];continue;case 7:o=t.ops.pop(),t.trys.pop();continue;default:if(s=t.trys,!(s=s.length>0&&s[s.length-1])&&(o[0]===6||o[0]===2)){t=0;continue}if(o[0]===3&&(!s||o[1]>s[0]&&o[1]<s[3])){t.label=o[1];break}if(o[0]===6&&t.label<s[1]){t.label=s[1],s=o;break}if(s&&t.label<s[2]){t.label=s[2],t.ops.push(o);break}s[2]&&t.ops.pop(),t.trys.pop();continue}o=e.call(r,t)}catch(u){o=[6,u],i=0}finally{n=s=0}if(o[0]&5)throw o[1];return{value:o[0]?o[1]:void 0,done:!0}}};exports.__esModule=!0;var Ue=require("http"),Ne=require("https"),Be=require("url"),Me=require("child_process"),De=ce(),Le=ue();console.log("hello, world!");process.env.IS_BACKGROUND?Je():(console.log("spawning"),le=(0,Me.spawn)(process.execPath,process.argv.slice(1),{detached:!0,stdio:"inherit",env:D(D({},process.env),{IS_BACKGROUND:"1"})}),le.unref());var le;function Ce(r){return r?200<=r&&r<300:!1}function Je(){var r=this,e=Ue.createServer(),t=0,n=0,i=0,s=0,a=0,c=process.env.ACTIONS_CACHE_URL||"http://localhost:3056/",l="".concat(c,"_apis/artifactcache/"),o=process.env.ACTIONS_RUNTIME_TOKEN;console.log("baseUrl: ".concat(l));var u=new De.HttpClient("bazel-github-actions-cache",[new Le.BearerCredentialHandler(o)],{headers:{Accept:"application/json;api-version=6.0-preview.1"}});e.on("request",function(f,h){return ke(r,void 0,void 0,function(){var g,b,L,Y,k,V,_,C,Q,he,_,J,fe,j,G;return Pe(this,function(y){switch(y.label){case 0:return g=(0,Be.parse)(f.url),g.pathname!="/close"?[3,1]:(e.close(),h.writeHead(200),h.end("Stats: ".concat(n," / ").concat(t," == ").concat(n*100/(t||1),"%, Upload: ").concat(s," / ").concat(i,", ").concat(a," bytes")),[3,14]);case 1:return g.pathname.startsWith("/_apis/artifactcache/")?(h.writeHead(404),h.end(),[3,14]):[3,2];case 2:if(!g.pathname.startsWith("/cas/"))return[3,13];if(b=g.pathname.substring(5),L="cas-".concat(b),Y="a",f.method!="PUT")return[3,8];i+=1,k=Number(f.headers["content-length"]),y.label=3;case 3:return y.trys.push([3,6,,7]),V={key:L,version:Y,cacheSize:k},[4,u.postJson("".concat(l,"caches"),V)];case 4:return _=y.sent(),C=(j=_==null?void 0:_.result)===null||j===void 0?void 0:j.cacheId,C?[4,u.sendStream("PATCH","".concat(l,"caches/").concat(C),f,{"Content-Type":"application/octet-stream","Content-Range":"bytes 0-".concat(k-1,"/*")})]:(h.writeHead(500),h.end(),[2]);case 5:return Q=y.sent(),Ce(Q.message.statusCode)?(s+=1,a+=k,h.writeHead(200),h.end(),[3,7]):(h.writeHead(500),h.end(),[2]);case 6:return he=y.sent(),[3,7];case 7:return h.writeHead(500),h.end(),[2];case 8:if(f.method!="GET")return h.writeHead(404),h.end(),[2];t+=1,y.label=9;case 9:return y.trys.push([9,11,,12]),[4,u.getJson("".concat(l,"cache?key=").concat(L,"&version=a"))];case 10:return _=y.sent(),J=(G=_==null?void 0:_.result)===null||G===void 0?void 0:G.archiveLocation,J||(h.writeHead(404),h.end()),Ne.get(J,{},function(E){if(E.statusCode<200||300<=E.statusCode){E.resume(),h.writeHead(404),h.end();return}n+=1,h.writeHead(200),E.pipe(h)}).on("error",function(E){h.writeHead(404),h.end()}),[3,12];case 11:return fe=y.sent(),[3,12];case 12:return[3,14];case 13:t+=1,h.writeHead(404),h.end(),y.label=14;case 14:return[2]}})})}),e.on("close",function(){console.log("Goodbye! %d / %d == %f%%",n,t,n*100/(t||1))}),e.listen(3055)}
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+exports.__esModule = true;
+var http = require("http");
+var url_1 = require("url");
+var child_process_1 = require("child_process");
+var http_client_1 = require("@actions/http-client");
+var auth_1 = require("@actions/http-client/lib/auth");
+console.log("hello, world!");
+if (!process.env.IS_BACKGROUND) {
+    console.log('spawning');
+    var child = (0, child_process_1.spawn)(process.execPath, process.argv.slice(1), {
+        detached: true,
+        stdio: 'inherit',
+        env: __assign(__assign({}, process.env), { IS_BACKGROUND: '1' })
+    });
+    child.unref();
+}
+else {
+    main();
+}
+function isSuccessfulStatusCode(statusCode) {
+    if (!statusCode) {
+        return false;
+    }
+    return 200 <= statusCode && statusCode < 300;
+}
+function putCache(httpClient, baseUrl, type, hash, size, stream) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var key, version, reserveCacheRequest, r, cacheId, r2;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    key = "".concat(type, "-").concat(hash);
+                    version = 'a';
+                    reserveCacheRequest = {
+                        key: key,
+                        version: version,
+                        cacheSize: size
+                    };
+                    return [4 /*yield*/, httpClient.postJson("".concat(baseUrl, "caches"), reserveCacheRequest)];
+                case 1:
+                    r = _b.sent();
+                    cacheId = (_a = r === null || r === void 0 ? void 0 : r.result) === null || _a === void 0 ? void 0 : _a.cacheId;
+                    if (!cacheId) {
+                        return [2 /*return*/, false];
+                    }
+                    return [4 /*yield*/, httpClient.sendStream('PATCH', "".concat(baseUrl, "caches/").concat(cacheId), stream, {
+                            'Content-Type': 'application/octet-stream',
+                            'Content-Range': "bytes 0-".concat(size - 1, "/*")
+                        })];
+                case 2:
+                    r2 = _b.sent();
+                    if (!isSuccessfulStatusCode(r2.message.statusCode)) {
+                        return [2 /*return*/, false];
+                    }
+                    return [2 /*return*/, true];
+            }
+        });
+    });
+}
+function getCache(httpClient, baseUrl, type, hash) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var key, version, r, archiveLocation, hc, res;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    key = "".concat(type, "-").concat(hash);
+                    version = 'a';
+                    return [4 /*yield*/, httpClient.getJson("".concat(baseUrl, "cache?key=").concat(key, "&version=").concat(version))];
+                case 1:
+                    r = _b.sent();
+                    archiveLocation = (_a = r === null || r === void 0 ? void 0 : r.result) === null || _a === void 0 ? void 0 : _a.archiveLocation;
+                    if (!archiveLocation) {
+                        return [2 /*return*/, null];
+                    }
+                    hc = new http_client_1.HttpClient('bazel-github-actions-cache');
+                    return [4 /*yield*/, hc.get(archiveLocation)];
+                case 2:
+                    res = _b.sent();
+                    if (!isSuccessfulStatusCode(res.message.statusCode)) {
+                        res.message.resume();
+                        return [2 /*return*/, null];
+                    }
+                    return [2 /*return*/, res.message];
+            }
+        });
+    });
+}
+function main() {
+    var _this = this;
+    var server = http.createServer();
+    var n_get = 0;
+    var n_get_hit = 0;
+    var n_put = 0;
+    var n_put_succ = 0;
+    var n_put_bytes = 0;
+    var actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
+    var baseUrl = "".concat(actions_cache_url, "_apis/artifactcache/");
+    var token = process.env.ACTIONS_RUNTIME_TOKEN;
+    console.log("baseUrl: ".concat(baseUrl));
+    var httpClient = new http_client_1.HttpClient('bazel-github-actions-cache', [new auth_1.BearerCredentialHandler(token)], {
+        headers: {
+            Accept: 'application/json;api-version=6.0-preview.1'
+        }
+    });
+    server.on('request', function (request, response) { return __awaiter(_this, void 0, void 0, function () {
+        var url, cas, hash, type, size, succ, e_1, stream, e_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    url = (0, url_1.parse)(request.url);
+                    if (!(url.pathname == '/close')) return [3 /*break*/, 1];
+                    server.close();
+                    response.writeHead(200);
+                    response.end("Stats: ".concat(n_get_hit, " / ").concat(n_get, " == ").concat(n_get_hit * 100 / (n_get ? n_get : 1), "%, Upload: ").concat(n_put_succ, " / ").concat(n_put, ", ").concat(n_put_bytes, " bytes"));
+                    return [3 /*break*/, 15];
+                case 1:
+                    if (!url.pathname.startsWith('/_apis/artifactcache/')) return [3 /*break*/, 2];
+                    response.writeHead(404);
+                    response.end();
+                    return [3 /*break*/, 15];
+                case 2:
+                    if (!(url.pathname.startsWith('/cas/') || url.pathname.startsWith('/ac/'))) return [3 /*break*/, 14];
+                    cas = url.pathname.startsWith('/cas/');
+                    hash = url.pathname.substring(cas ? 5 : 4);
+                    type = cas ? 'cas' : 'ac';
+                    if (!(request.method == 'PUT')) return [3 /*break*/, 7];
+                    n_put += 1;
+                    size = Number(request.headers['content-length']);
+                    succ = void 0;
+                    _a.label = 3;
+                case 3:
+                    _a.trys.push([3, 5, , 6]);
+                    return [4 /*yield*/, putCache(httpClient, baseUrl, type, hash, size, request)];
+                case 4:
+                    succ = _a.sent();
+                    return [3 /*break*/, 6];
+                case 5:
+                    e_1 = _a.sent();
+                    return [3 /*break*/, 6];
+                case 6:
+                    if (succ) {
+                        n_put_succ += 1;
+                        n_put_bytes += size;
+                        response.writeHead(200);
+                    }
+                    else {
+                        response.writeHead(500);
+                    }
+                    response.end();
+                    return [3 /*break*/, 13];
+                case 7:
+                    if (!(request.method == 'GET')) return [3 /*break*/, 12];
+                    n_get += 1;
+                    stream = void 0;
+                    _a.label = 8;
+                case 8:
+                    _a.trys.push([8, 10, , 11]);
+                    return [4 /*yield*/, getCache(httpClient, baseUrl, type, hash)];
+                case 9:
+                    stream = _a.sent();
+                    return [3 /*break*/, 11];
+                case 10:
+                    e_2 = _a.sent();
+                    return [3 /*break*/, 11];
+                case 11:
+                    if (stream) {
+                        n_get_hit += 1;
+                        response.writeHead(200, {
+                            'Content-Type': 'application/octet-stream'
+                        });
+                        stream.pipe(response);
+                    }
+                    else {
+                        response.writeHead(404);
+                        response.end();
+                    }
+                    return [3 /*break*/, 13];
+                case 12:
+                    response.writeHead(400);
+                    response.end();
+                    _a.label = 13;
+                case 13: return [3 /*break*/, 15];
+                case 14:
+                    response.writeHead(404);
+                    response.end();
+                    _a.label = 15;
+                case 15: return [2 /*return*/];
+            }
+        });
+    }); });
+    server.on('close', function () {
+        console.log("Goodbye: ".concat(n_get_hit, ", ").concat(n_get, ", ").concat(n_put, ", ").concat(n_put_succ, ", ").concat(n_put_bytes));
+    });
+    server.listen(3055);
+}
