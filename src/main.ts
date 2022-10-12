@@ -68,7 +68,7 @@ async function putCache(httpClient: HttpClient, baseUrl: string, type: string, h
         return false
     }
     const commitCacheRequest: CommitCacheRequest = { size: size }
-    const commit = await httpClient.postJson<null>(`${baseUrl}caches`, commitCacheRequest)
+    const commit = await httpClient.postJson<null>(`${baseUrl}caches/${cacheId}`, commitCacheRequest)
     if (!isSuccessfulStatusCode(commit.statusCode)) {
         return false
     }
