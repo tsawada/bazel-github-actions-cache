@@ -7,6 +7,10 @@ import * as core from '@actions/core'
 import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 
 console.log("hello, world!");
+var errorBuffer = []
+function debug(message: string) {
+    errorBuffer.push(message)
+}
 
 if (!process.env.IS_BACKGROUND) {
     console.log('spawning');
@@ -47,10 +51,6 @@ function isSuccessfulStatusCode(statusCode?: number): boolean {
         return false
     }
     return 200 <= statusCode && statusCode < 300
-}
-var errorBuffer = []
-function debug(message: string) {
-    errorBuffer.push(message)
 }
 
 async function putCache(httpClient: HttpClient, baseUrl: string, type: string, hash: string, size: number, stream: NodeJS.ReadableStream): Promise<boolean> {
