@@ -90,15 +90,17 @@ async function getCache(httpClient: HttpClient, baseUrl: string, type: string, h
     const key = `${type}-${hash}`
     const version = 'b'
 
-    const r = await httpClient.getJson<ArtifactCacheEntry>(`${baseUrl}cache?key=${key}&version=${version}`)
+    const r = await httpClient.getJson<ArtifactCacheEntry>(`${baseUrl}cache?keys=${key}&version=${version}`)
     const archiveLocation = r?.result?.archiveLocation
     if (!archiveLocation) {
+        debug(`Entry failed: ${r.statusCode}`)
         return null
     }
 
     const hc = new HttpClient('bazel-github-actions-cache')
     const res = await hc.get(archiveLocation)
     if (!isSuccessfulStatusCode(res.message.statusCode)) {
+        debug(`Blob failed: ${res.message.statusMessage}`)
         res.message.resume()
         return null
     }
