@@ -2,34 +2,12 @@ import * as http from 'http'
 import * as https from 'https'
 import { parse } from 'url'
 import { spawn } from 'child_process'
+import { HttpClient } from '@actions/http-client'
+import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 
 console.log("hello, world!");
 
 if (!process.env.IS_BACKGROUND) {
-    const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
-    const baseUrl = `${ actions_cache_url }_apis/artifactcache/`;
-    const token = process.env.ACTIONS_RUNTIME_TOKEN;
-    console.log(`baseUrl: ${ baseUrl }`);
-    const pathname = '/cas/13526f764a3b4aeafcb6b0fde3da6069821ee611fd2fbc83fd2f01ea10617fee';
-    const hash = pathname.substring(5);
-    https.get(baseUrl + 'cache?key=cas-' + hash, {
-        headers: {
-            'Authorization': 'Bearer ' + token
-        }
-    },
-    (r) => {
-        /*
-        if (200 <= r.statusCode && r.statusCode < 300) {
-            n_hit += 1;
-            response.writeHead(200);
-            r.pipe(response);
-        } else {
-            */
-            r.resume();
-        //}
-    }).on('error', (e) => {
-        console.log(e);
-    });
     console.log('spawning');
     const child = spawn(process.execPath, process.argv.slice(1), {
         detached: true,
@@ -41,18 +19,60 @@ if (!process.env.IS_BACKGROUND) {
     main();
 }
 
+interface ArtifactCacheEntry {
+    cacheKey?: string
+    scope?: string
+    creationTime?: string
+    archiveLocation?: string
+}
+
+/*
+async function getJson<T>(url: string, options: Object): Promise<T> {
+    return new Promise((resolve, reject) => {
+        https.get(url, options, (response) => {
+            if (response.statusCode < 200 || 300 <= response.statusCode) {
+                reject({});
+                return;
+            }
+            let b = Buffer.alloc(0);
+            response.on('data', (chunk: Buffer) => {
+                b = Buffer.concat([b, chunk]);
+            })
+            response.on('end', () => {
+                resolve(JSON.parse(b.toString()))
+            })
+        }).on('error', (e) => {
+            reject(e);
+        });
+    });
+}
+
+async function postJson<T>(url: string, options: Object): Promise<T> {
+
+}
+*/
+
 function main() {
     const server = http.createServer();
     let n_req: number = 0;
     let n_hit: number = 0;
-    let n_miss: number = 0;
+    let n_put: number = 0;
 
     const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
     const baseUrl = `${ actions_cache_url }_apis/artifactcache/`;
     const token = process.env.ACTIONS_RUNTIME_TOKEN;
     console.log(`baseUrl: ${ baseUrl }`);
+    const httpClient = new HttpClient(
+        'bazel-github-actions-cache',
+        [new BearerCredentialHandler(token)],
+        {
+            headers : {
+                Accept: 'application/json;api-version=6.0-preview.1'
+            }
+        }
+    )
 
-    server.on('request', (request, response) => {
+    server.on('request', async (request, response) => {
         const url = parse(request.url);
         if (url.pathname == '/close') {
             server.close();
@@ -62,31 +82,34 @@ function main() {
             response.writeHead(404);
             response.end();
         } else if (url.pathname.startsWith('/cas/')) {
-            n_req += 1;
-            const hash = url.pathname.substring(5);
-            https.get(baseUrl + 'cache?key=cas-' + hash, {
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            },
-            (r) => {
-                if (200 <= r.statusCode && r.statusCode < 300) {
-                    n_hit += 1;
-                    response.writeHead(200);
-                    r.pipe(response);
-                } else {
-                    n_miss += 1;
-                    r.resume();
-                    response.writeHead(404);
-                    response.end();
-                }
-            }).on('error', (e) => {
+            if (request.method != 'GET') {
                 response.writeHead(404);
                 response.end();
-            });
+            }
+            n_req += 1;
+            const hash = url.pathname.substring(5);
+            const r = await httpClient.getJson<ArtifactCacheEntry>(`${baseUrl}cache?key=cas-${hash}&version=a`)
+            const archiveLocation = r?.result?.archiveLocation
+            if (!archiveLocation) {
+                response.writeHead(404);
+                response.end()
+            }
+            https.get(archiveLocation, {}, (r) => {
+                if (r.statusCode < 200 || 300 <= r.statusCode) {
+                    r.resume()
+                    response.writeHead(404)
+                    response.end()
+                    return
+                }
+                n_hit += 1
+                response.writeHead(200)
+                r.pipe(response)
+            }).on('error', (e) => {
+                response.writeHead(404)
+                response.end()
+            })
         } else {
             n_req += 1;
-            n_miss += 1;
             response.writeHead(404);
             response.end();
         }

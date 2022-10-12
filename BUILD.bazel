@@ -10,6 +10,7 @@ ts_project(
     srcs = glob(["src/main.ts"]),
     out_dir = "dist",
     deps = [
+        "//:node_modules/@actions/http-client",
         "//:node_modules/@types/node",
     ],
 )
