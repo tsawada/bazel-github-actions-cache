@@ -33,7 +33,6 @@ function main() {
             server.close();
             response.writeHead(200);
             response.end(`Stats: ${ n_hit } / ${ n_req } == ${ n_hit * 100 / (n_req? n_req: 1) }%`);
-/*
         } else if (url.pathname.startsWith('/_apis/artifactcache/')) {
             response.writeHead(404);
             response.end();
@@ -46,20 +45,22 @@ function main() {
                 }
             },
             (r) => {
+                /*
                 if (200 <= r.statusCode && r.statusCode < 300) {
                     n_hit += 1;
                     response.writeHead(200);
                     r.pipe(response);
                 } else {
+                    */
                     n_miss += 1;
+                    r.resume();
                     response.writeHead(404);
                     response.end();
-                }
+                //}
             }).on('error', (e) => {
                 response.writeHead(404);
                 response.end();
             });
-            */
         } else {
             n_req += 1;
             n_miss += 1;
