@@ -26,37 +26,34 @@ interface ArtifactCacheEntry {
     archiveLocation?: string
 }
 
-/*
-async function getJson<T>(url: string, options: Object): Promise<T> {
-    return new Promise((resolve, reject) => {
-        https.get(url, options, (response) => {
-            if (response.statusCode < 200 || 300 <= response.statusCode) {
-                reject({});
-                return;
-            }
-            let b = Buffer.alloc(0);
-            response.on('data', (chunk: Buffer) => {
-                b = Buffer.concat([b, chunk]);
-            })
-            response.on('end', () => {
-                resolve(JSON.parse(b.toString()))
-            })
-        }).on('error', (e) => {
-            reject(e);
-        });
-    });
+interface CommitCacheRequest {
+    size: number
 }
 
-async function postJson<T>(url: string, options: Object): Promise<T> {
-
+interface ReserveCacheRequest {
+    key: string
+    version?: string
+    cacheSize?: number
 }
-*/
+
+interface ReserveCacheResponse {
+    cacheId: number
+}
+
+function isSuccessfulStatusCode(statusCode?: number): boolean {
+    if (!statusCode) {
+        return false
+    }
+    return 200 <= statusCode && statusCode < 300
+}
 
 function main() {
     const server = http.createServer();
     let n_req: number = 0;
     let n_hit: number = 0;
     let n_put: number = 0;
+    let n_put_succ: number = 0;
+    let n_put_bytes: number = 0;
 
     const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
     const baseUrl = `${ actions_cache_url }_apis/artifactcache/`;
@@ -77,37 +74,80 @@ function main() {
         if (url.pathname == '/close') {
             server.close();
             response.writeHead(200);
-            response.end(`Stats: ${ n_hit } / ${ n_req } == ${ n_hit * 100 / (n_req? n_req: 1) }%`);
+            response.end(`Stats: ${ n_hit } / ${ n_req } == ${ n_hit * 100 / (n_req? n_req: 1) }%, Upload: ${ n_put_succ } / ${n_put}, ${n_put_bytes} bytes`);
         } else if (url.pathname.startsWith('/_apis/artifactcache/')) {
             response.writeHead(404);
             response.end();
         } else if (url.pathname.startsWith('/cas/')) {
+            const hash = url.pathname.substring(5);
+            const key = `cas-${hash}`
+            const version = 'a'
+            if (request.method == 'PUT') {
+                n_put += 1
+                const l = Number(request.headers['content-length'])
+                try {
+                    const reserveCacheRequest: ReserveCacheRequest = {
+                        key: key,
+                        version: version,
+                        cacheSize: l
+                    }
+                    const r = await httpClient.postJson<ReserveCacheResponse>(`${baseUrl}caches`, reserveCacheRequest)
+                    const cacheId = r?.result?.cacheId
+                    if (!cacheId) {
+                        response.writeHead(500)
+                        response.end()
+                        return
+                    }
+                    const r2 = await httpClient.sendStream('PATCH', `${baseUrl}caches/${cacheId}`, request, {
+                        'Content-Type': 'application/octet-stream',
+                        'Content-Range': `bytes 0-${l-1}/*`
+                    })
+                    if (!isSuccessfulStatusCode(r2.message.statusCode)) {
+                        response.writeHead(500)
+                        response.end()
+                        return
+                    }
+                    n_put_succ += 1
+                    n_put_bytes += l
+                    response.writeHead(200)
+                    response.end()
+                } catch (e) {
+                    //console.log(e)
+                }
+                response.writeHead(500)
+                response.end()
+                return
+            }
             if (request.method != 'GET') {
                 response.writeHead(404);
                 response.end();
+                return
             }
             n_req += 1;
-            const hash = url.pathname.substring(5);
-            const r = await httpClient.getJson<ArtifactCacheEntry>(`${baseUrl}cache?key=cas-${hash}&version=a`)
-            const archiveLocation = r?.result?.archiveLocation
-            if (!archiveLocation) {
-                response.writeHead(404);
-                response.end()
-            }
-            https.get(archiveLocation, {}, (r) => {
-                if (r.statusCode < 200 || 300 <= r.statusCode) {
-                    r.resume()
+            try {
+                const r = await httpClient.getJson<ArtifactCacheEntry>(`${baseUrl}cache?key=${key}&version=a`)
+                const archiveLocation = r?.result?.archiveLocation
+                if (!archiveLocation) {
+                    response.writeHead(404);
+                    response.end()
+                }
+                https.get(archiveLocation, {}, (r) => {
+                    if (r.statusCode < 200 || 300 <= r.statusCode) {
+                        r.resume()
+                        response.writeHead(404)
+                        response.end()
+                        return
+                    }
+                    n_hit += 1
+                    response.writeHead(200)
+                    r.pipe(response)
+                }).on('error', (e) => {
                     response.writeHead(404)
                     response.end()
-                    return
-                }
-                n_hit += 1
-                response.writeHead(200)
-                r.pipe(response)
-            }).on('error', (e) => {
-                response.writeHead(404)
-                response.end()
-            })
+                })
+            } catch (e) {
+                //console.log(e)
+            }
         } else {
             n_req += 1;
             response.writeHead(404);
