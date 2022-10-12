@@ -48,7 +48,7 @@ function isSuccessfulStatusCode(statusCode?: number): boolean {
     }
     return 200 <= statusCode && statusCode < 300
 }
-let errorBuffer = []
+var errorBuffer = []
 function debug(message: string) {
     errorBuffer.push(message)
 }
