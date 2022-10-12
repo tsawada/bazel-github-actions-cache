@@ -3,3 +3,4 @@ description: Github Actions cache for Bazel
 runs:
   using: 'node16'
   main: 'dist/main.js'
+  post: 'dist/post.js'
