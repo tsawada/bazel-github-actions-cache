@@ -2,11 +2,11 @@
 exports.__esModule = true;
 var http = require("http");
 http.get("http://localhost:3055/close", {}, (response) => {
-    var s = '';
+    let b = Buffer.alloc(0);
     response.on('data', (chunk) => {
-        s += chunk;
+        b = Buffer.concat([b, chunk])
     });
     response.on('end', () => {
-        console.log(s);
+        console.log(b.toString());
     })
 });

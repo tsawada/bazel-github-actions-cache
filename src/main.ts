@@ -65,6 +65,7 @@ async function putCache(httpClient: HttpClient, baseUrl: string, type: string, h
     const cacheId = r?.result?.cacheId
     if (!cacheId) {
         debug(`ReserveCache failed: ${r.statusCode}`)
+        stream.resume()
         return false;
     }
     const upload = await httpClient.sendStream('PATCH', `${baseUrl}caches/${cacheId}`, stream, {
@@ -73,6 +74,7 @@ async function putCache(httpClient: HttpClient, baseUrl: string, type: string, h
     })
     if (!isSuccessfulStatusCode(upload.message.statusCode)) {
         debug(`Upload failed: ${upload.message.statusMessage}`)
+        stream.resume()
         return false
     }
     const commitCacheRequest: CommitCacheRequest = { size: size }
