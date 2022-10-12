@@ -1,26 +1,18 @@
 import * as http from 'http'
+import * as https from 'https'
 import { parse } from 'url'
 import { spawn } from 'child_process'
 
 console.log("hello, world!");
 
 if (!process.env.IS_BACKGROUND) {
-    /*
-    console.log('spawning');
-    const child = spawn(process.execPath, process.argv.slice(1), {
-        detached: true,
-        stdio: 'inherit',
-        env: {...process.env, IS_BACKGROUND: '1'}
-    });
-    child.unref();
-    */
     const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
     const baseUrl = `${ actions_cache_url }_apis/artifactcache/`;
     const token = process.env.ACTIONS_RUNTIME_TOKEN;
     console.log(`baseUrl: ${ baseUrl }`);
     const pathname = '/cas/13526f764a3b4aeafcb6b0fde3da6069821ee611fd2fbc83fd2f01ea10617fee';
     const hash = pathname.substring(5);
-    http.get(baseUrl + 'cache?key=cas-' + hash, {
+    https.get(baseUrl + 'cache?key=cas-' + hash, {
         headers: {
             'Authorization': 'Bearer ' + token
         }
@@ -38,6 +30,13 @@ if (!process.env.IS_BACKGROUND) {
     }).on('error', (e) => {
         console.log(e);
     });
+    console.log('spawning');
+    const child = spawn(process.execPath, process.argv.slice(1), {
+        detached: true,
+        stdio: 'inherit',
+        env: {...process.env, IS_BACKGROUND: '1'}
+    });
+    child.unref();
 } else {
     main();
 }
@@ -65,24 +64,22 @@ function main() {
         } else if (url.pathname.startsWith('/cas/')) {
             n_req += 1;
             const hash = url.pathname.substring(5);
-            http.get(baseUrl + 'cache?key=cas-' + hash, {
+            https.get(baseUrl + 'cache?key=cas-' + hash, {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 }
             },
             (r) => {
-                /*
                 if (200 <= r.statusCode && r.statusCode < 300) {
                     n_hit += 1;
                     response.writeHead(200);
                     r.pipe(response);
                 } else {
-                    */
                     n_miss += 1;
                     r.resume();
                     response.writeHead(404);
                     response.end();
-                //}
+                }
             }).on('error', (e) => {
                 response.writeHead(404);
                 response.end();
