@@ -49,7 +49,7 @@ function isSuccessfulStatusCode(statusCode?: number): boolean {
 
 async function putCache(httpClient: HttpClient, baseUrl: string, type: string, hash: string, size: number, stream: NodeJS.ReadableStream): Promise<boolean> {
     const key = `${type}-${hash}`
-    const version = 'a'
+    const version = 'b'
     const reserveCacheRequest: ReserveCacheRequest = {
         key: key,
         version: version,
@@ -60,11 +60,16 @@ async function putCache(httpClient: HttpClient, baseUrl: string, type: string, h
     if (!cacheId) {
         return false;
     }
-    const r2 = await httpClient.sendStream('PATCH', `${baseUrl}caches/${cacheId}`, stream, {
+    const upload = await httpClient.sendStream('PATCH', `${baseUrl}caches/${cacheId}`, stream, {
         'Content-Type': 'application/octet-stream',
         'Content-Range': `bytes 0-${size-1}/*`
     })
-    if (!isSuccessfulStatusCode(r2.message.statusCode)) {
+    if (!isSuccessfulStatusCode(upload.message.statusCode)) {
+        return false
+    }
+    const commitCacheRequest: CommitCacheRequest = { size: size }
+    const commit = await httpClient.postJson<null>(`${baseUrl}caches`, commitCacheRequest)
+    if (!isSuccessfulStatusCode(commit.statusCode)) {
         return false
     }
     return true
@@ -72,7 +77,7 @@ async function putCache(httpClient: HttpClient, baseUrl: string, type: string, h
 
 async function getCache(httpClient: HttpClient, baseUrl: string, type: string, hash: string): Promise<NodeJS.ReadableStream> {
     const key = `${type}-${hash}`
-    const version = 'a'
+    const version = 'b'
 
     const r = await httpClient.getJson<ArtifactCacheEntry>(`${baseUrl}cache?key=${key}&version=${version}`)
     const archiveLocation = r?.result?.archiveLocation
