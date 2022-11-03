@@ -1,0 +1,22 @@
+name: bazel (bazel-github-actions-cache)
+on:
+  - push
+
+jobs:
+  bazel:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: bazelisk-cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/bazelisk
+        key: ${{ runner.os }}-${{ runner.arch }}-bazelisk-${{ hashFiles('.bazelversion') }}
+
+    - name: bazel-github-actions-cache
+      uses: ./
+
+    - name: bazel build
+      run: bazelisk build --remote_cache=http://localhost:3055 //...
