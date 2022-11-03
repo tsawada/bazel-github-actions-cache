@@ -7,11 +7,14 @@ npm_link_all_packages(name = "node_modules")
 
 ts_project(
     name = "main",
-    srcs = glob(["src/main.ts"]),
-    out_dir = "dist",
+    srcs = [
+        "src/ActionsCache.ts",
+        "src/HttpServer.ts",
+        "src/main.ts",
+    ],
     deps = [
-        "//:node_modules/@actions/http-client",
         "//:node_modules/@actions/core",
+        "//:node_modules/@actions/http-client",
         "//:node_modules/@types/node",
     ],
 )
@@ -19,7 +22,7 @@ ts_project(
 esbuild(
     name = "main_bundle",
     srcs = [":main"],
-    entry_point = ":main",
+    entry_point = "src/main.js",
     minify = True,
     platform = "node",
     sourcemap = "external",
