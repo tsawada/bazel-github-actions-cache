@@ -16,7 +16,7 @@ jobs:
         key: ${{ runner.os }}-${{ runner.arch }}-bazelisk-${{ hashFiles('.bazelversion') }}
 
     - name: bazel-github-actions-cache
-      uses: tsawada/bazel-github-actions-cache@v0
+      uses: tsawada/bazel-github-actions-cache@v0.0.2
 
 
     - name: bazel build
