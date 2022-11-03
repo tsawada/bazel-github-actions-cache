@@ -18,5 +18,6 @@ jobs:
     - name: bazel-github-actions-cache
       uses: tsawada/bazel-github-actions-cache@v0
 
+
     - name: bazel build
       run: bazelisk build --remote_cache=http://localhost:3055 //...
