@@ -95,6 +95,7 @@ esbuild_register_toolchains(
     name = "esbuild",
     esbuild_version = LATEST_VERSION,
 )
+
 http_archive(
     name = "com_github_grpc_grpc",
     sha256 = "b391a327429279f6f29b9ae7e5317cd80d5e9d49cc100e6d682221af73d984a6",
@@ -109,14 +110,8 @@ grpc_deps()
 
 http_archive(
     name = "remote_apis",
-    url = "https://github.com/bazelbuild/remote-apis/archive/3a21deee813d0b98aaeef9737c720e509e10dc8b.zip",
     strip_prefix = "remote-apis-3a21deee813d0b98aaeef9737c720e509e10dc8b",
-)
-
-http_archive(
-    name = "protoc_gen_ts",
-    url = "https://github.com/thesayyn/protoc-gen-ts/archive/refs/tags/0.8.5.tar.gz",
-    strip_prefix = "protoc-gen-ts-0.8.5",
+    url = "https://github.com/bazelbuild/remote-apis/archive/3a21deee813d0b98aaeef9737c720e509e10dc8b.zip",
 )
 
 http_archive(

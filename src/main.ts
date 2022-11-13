@@ -2,7 +2,8 @@ import { spawn } from 'child_process'
 import * as core from '@actions/core'
 import { ActionsCache } from './ActionsCache'
 import { HttpServer } from './HttpServer'
-import * as remote_execution from '../build/bazel/remote/execution/v2/remote_execution';
+import { Server, ServerCredentials } from '@grpc/grpc-js';
+import { CapabilitiesService } from './GrpcServer';
 
 const errorBuffer = []
 function debug(message: string) {
@@ -34,6 +35,11 @@ function main() {
     httpServer.on('close', () => {
         console.log("Goodbye: " + JSON.stringify(httpServer.getStats()))
     });
+
+    const grpcServer = new Server()
+    grpcServer.bindAsync('0.0.0.0:4000', ServerCredentials.createInsecure(), () => {
+        grpcServer.start()
+    })
 
     httpServer.listen(3055);
 }
