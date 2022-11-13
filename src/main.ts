@@ -25,7 +25,7 @@ if (!process.env.IS_BACKGROUND) {
 function main() {
     const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
     const baseUrl = `${ actions_cache_url }_apis/artifactcache/`;
-    const token = process.env.ACTIONS_RUNTIME_TOKEN;
+    const token = process.env.ACTIONS_RUNTIME_TOKEN ?? '';
 
     const actionsCache = new ActionsCache(baseUrl, token);
     const httpServer = new HttpServer(actionsCache);

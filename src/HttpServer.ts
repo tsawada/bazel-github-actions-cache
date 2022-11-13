@@ -35,14 +35,14 @@ export class HttpServer extends http.Server {
     }
 
     async get_cas(request: http.IncomingMessage, response: http.ServerResponse) {
-        const url = parse(request.url);
-        const cas = url.pathname.startsWith('/cas/')
-        const hash = url.pathname.substring(cas? 5: 4);
+        const url = parse(request.url ?? '');
+        const cas = url.pathname?.startsWith('/cas/') ?? false
+        const hash = url.pathname?.substring(cas? 5: 4) ?? '';
         const type = cas? 'cas': 'ac'
         if (request.method == 'PUT') {
             this.n_put += 1
             const size = Number(request.headers['content-length'])
-            let succ: boolean
+            let succ = false
             try {
                 succ = await this.actionsCache.putCache(type, hash, size, request)
             } catch (e) {
@@ -58,7 +58,7 @@ export class HttpServer extends http.Server {
             response.end()
         } else if (request.method == 'GET') {
             this.n_get += 1
-            let stream: NodeJS.ReadableStream | null
+            let stream: NodeJS.ReadableStream | null = null
             try {
                 stream = await this.actionsCache.getCache(type, hash)
             } catch (e) {
@@ -78,13 +78,13 @@ export class HttpServer extends http.Server {
     }
 
     async onRequest(request: http.IncomingMessage, response: http.ServerResponse) {
-        const url = parse(request.url);
+        const url = parse(request.url ?? '');
         if (url.pathname == '/close') {
             this.get_close(request, response)
-        } else if (url.pathname.startsWith('/_apis/artifactcache/')) {
+        } else if (url.pathname?.startsWith('/_apis/artifactcache/')) {
             response.writeHead(404);
             response.end();
-        } else if (url.pathname.startsWith('/cas/') || url.pathname.startsWith('/ac/')) {
+        } else if (url.pathname?.startsWith('/cas/') || url.pathname?.startsWith('/ac/')) {
             this.get_cas(request, response)
         } else {
             response.writeHead(404);
