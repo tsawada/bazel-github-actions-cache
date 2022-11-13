@@ -2,6 +2,7 @@ import { spawn } from 'child_process'
 import * as core from '@actions/core'
 import { ActionsCache } from './ActionsCache'
 import { HttpServer } from './HttpServer'
+import * as remote_execution from '../build/bazel/remote/execution/v2/remote_execution';
 
 const errorBuffer = []
 function debug(message: string) {

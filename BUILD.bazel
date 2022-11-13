@@ -11,11 +11,15 @@ ts_project(
         "src/ActionsCache.ts",
         "src/HttpServer.ts",
         "src/main.ts",
+        "//:remote_execution_ts",
     ],
     deps = [
         "//:node_modules/@actions/core",
         "//:node_modules/@actions/http-client",
         "//:node_modules/@types/node",
+        "//:node_modules/@types/google-protobuf",
+        "//:node_modules/google-protobuf",
+        "//:node_modules/@grpc/grpc-js",
     ],
 )
 
@@ -31,4 +35,28 @@ esbuild(
 write_source_files(
     name = "dist",
     files = {"dist/main.js": ":main_bundle.js"},
+)
+
+load("//:protoc-gen-ts/index.bzl", "ts_proto_library")
+
+ts_proto_library(
+    name = "remote_execution_ts",
+    deps = [
+        "@remote_apis//build/bazel/remote/execution/v2:remote_execution_proto",
+    ],
+    outs = [
+        "build/bazel/remote/execution/v2/remote_execution.ts",
+        "google/longrunning/operations.ts",
+        "google/api/annotations.ts",
+        "google/api/http.ts",
+        "google/rpc/status.ts",
+        "google/protobuf/any.ts",
+        "google/protobuf/timestamp.ts",
+        "google/protobuf/wrappers.ts",
+        "google/protobuf/duration.ts",
+        "google/protobuf/empty.ts",
+        "google/protobuf/descriptor.ts",
+        "build/bazel/semver/semver.ts",
+    ],
+    visibility = ["//visibility:public"],
 )

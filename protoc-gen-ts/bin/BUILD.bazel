@@ -1,0 +1,7 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@npm//:protoc-gen-ts/package_json.bzl", pgt_bin = "bin")
+
+pgt_bin.protoc_gen_ts_binary(
+    name = "protoc-gen-ts",
+    visibility = ["//visibility:public"],
+)
