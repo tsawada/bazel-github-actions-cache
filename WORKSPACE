@@ -39,9 +39,9 @@ http_archive(
 
 http_archive(
     name = "aspect_rules_js",
-    sha256 = "b9fde0f20de6324ad443500ae738bda00facbd73900a12b417ce794856e01407",
-    strip_prefix = "rules_js-1.5.0",
-    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.5.0.tar.gz",
+    sha256 = "dda5fee3926e62c483660b35b25d1577d23f88f11a2775e3555b57289f4edb12",
+    strip_prefix = "rules_js-1.6.9",
+    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.6.9.tar.gz",
 )
 
 load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
@@ -69,9 +69,9 @@ npm_repositories()
 
 http_archive(
     name = "aspect_rules_ts",
-    sha256 = "3eb3171c26eb5d0951d51ae594695397218fb829e3798eea5557814723a1b3da",
-    strip_prefix = "rules_ts-1.0.0-rc3",
-    url = "https://github.com/aspect-build/rules_ts/archive/refs/tags/v1.0.0-rc3.tar.gz",
+    sha256 = "f3f0d0a92b0069f8d1bf6a0e26408bd591a8626166db3f88e8d971ffed8f59ba",
+    strip_prefix = "rules_ts-1.0.0",
+    url = "https://github.com/aspect-build/rules_ts/archive/refs/tags/v1.0.0.tar.gz",
 )
 
 load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
