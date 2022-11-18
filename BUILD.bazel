@@ -10,9 +10,9 @@ ts_project(
     name = "main",
     srcs = [
         "src/ActionsCache.ts",
-        "src/GrpcServer.ts",
+        "src/GrpcServer_patched.ts",
         "src/HttpServer.ts",
-        "src/main.ts",
+        "src/main_patched.ts",
     ],
     declaration = True,
     deps = [
@@ -20,16 +20,14 @@ ts_project(
         "//:node_modules/@actions/core",
         "//:node_modules/@actions/http-client",
         "//:node_modules/@grpc/grpc-js",
-        "//:node_modules/@types/google-protobuf",
         "//:node_modules/@types/node",
-        "//:node_modules/google-protobuf",
     ],
 )
 
 esbuild(
     name = "main_bundle",
     srcs = [":main"],
-    entry_point = "src/main.js",
+    entry_point = "src/main_patched.js",
     minify = True,
     platform = "node",
     sourcemap = "external",
@@ -41,11 +39,25 @@ write_source_files(
 )
 
 genrule(
-    name = "patch",
+    name = "patch_re",
     srcs = [":build/bazel/remote/execution/v2/remote_execution.ts"],
     outs = ["build/bazel/remote/execution/v2/remote_execution_patched.ts"],
     cmd = "cat $< | sed -e 's/Compressor.Value.IDENTITY.*as Compressor.Value\\[\\]/[]) as Compressor.Value[]/'" +
           " | sed -e 's/DigestFunction.Value.UNKNOWN.*as Digest.*\\[\\]/[]) as DigestFunction.Value[]/' > $@",
+)
+
+genrule(
+    name = "patch_bazel-bin",
+    srcs = ["src/GrpcServer.ts"],
+    outs = ["src/GrpcServer_patched.ts"],
+    cmd = "cat $< | sed -e 's!bazel-bin/!!' > $@",
+)
+
+genrule(
+    name = "patch2",
+    srcs = ["src/main.ts"],
+    outs = ["src/main_patched.ts"],
+    cmd = "cat $< | sed -e 's/GrpcServer/GrpcServer_patched/' > $@",
 )
 
 ts_proto_library(
@@ -94,8 +106,5 @@ ts_project(
     },
     deps = [
         "//:node_modules/@grpc/grpc-js",
-        "//:node_modules/@types/google-protobuf",
-        "//:node_modules/@types/node",
-        "//:node_modules/google-protobuf",
     ],
 )
