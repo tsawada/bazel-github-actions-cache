@@ -110,6 +110,7 @@ grpc_deps()
 
 http_archive(
     name = "remote_apis",
+    sha256 = "d242ff05ab0fe97a8d4c75cef0a518701abf6c01093050108553a0b60c931f68",
     strip_prefix = "remote-apis-3a21deee813d0b98aaeef9737c720e509e10dc8b",
     url = "https://github.com/bazelbuild/remote-apis/archive/3a21deee813d0b98aaeef9737c720e509e10dc8b.zip",
 )

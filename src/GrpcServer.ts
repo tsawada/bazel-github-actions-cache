@@ -1,7 +1,5 @@
 import * as grpc from '@grpc/grpc-js';
-//import * as remote_execution from '../build/bazel/remote/execution/v2/remote_execution_patched';
-//import * as semver from '../build/bazel/semver/semver';
-import * as remote_execution from '../bazel-bin/build/bazel/remote/execution/v2/remote_execution_patched';
+import * as remote_execution from '../bazel-bin/build/bazel/remote/execution/v2/remote_execution';
 import * as semver from '../bazel-bin/build/bazel/semver/semver';
 import { ActionsCache } from './ActionsCache'
 
@@ -24,19 +22,19 @@ class CapabilitiesService extends rev2.UnimplementedCapabilitiesService {
     }
 }
 
-class ActionCacheService extends rev2.UnimplementedActionCacheService {
-    actionsCache: ActionsCache
-    
-    constructor(actionsCache: ActionsCache) {
-        super()
-        this.actionsCache = actionsCache
-    }
-    GetActionResult(call: grpc.ServerUnaryCall<rev2.GetActionResultRequest, rev2.ActionResult>, callback: grpc.sendUnaryData<rev2.ActionResult>): void {
-        const d = call.request.action_digest
+function newActionCacheService(actionCache: ActionsCache) {
+    return {
+        UpdateActionResult: (call: grpc.ServerUnaryCall<rev2.UpdateActionResultRequest, rev2.ActionResult>, callback: grpc.sendUnaryData<rev2.ActionResult>): void => {
+            throw new Error('Method not implemented.');
+        },
+        
+        GetActionResult: (call: grpc.ServerUnaryCall<rev2.GetActionResultRequest, rev2.ActionResult>, callback: grpc.sendUnaryData<rev2.ActionResult>): void => {
+            const d = call.request.action_digest
+        }
     }
 }
 
 export function addService(grpcServer: grpc.Server, actionsCache: ActionsCache) {
     grpcServer.addService(CapabilitiesService.definition, new CapabilitiesService())
-    grpcServer.addService(ActionCacheService.definition, new ActionCacheService(actionsCache))
+    grpcServer.addService(rev2.UnimplementedActionCacheService.definition, newActionCacheService(actionsCache))
 }
