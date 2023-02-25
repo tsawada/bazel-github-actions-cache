@@ -95,3 +95,30 @@ esbuild_register_toolchains(
     name = "esbuild",
     esbuild_version = LATEST_VERSION,
 )
+
+http_archive(
+    name = "com_github_grpc_grpc",
+    sha256 = "b391a327429279f6f29b9ae7e5317cd80d5e9d49cc100e6d682221af73d984a6",
+    strip_prefix = "grpc-93e8830070e9afcbaa992c75817009ee3f4b63a0",  # v1.24.3 with fixes
+    urls = ["https://github.com/grpc/grpc/archive/93e8830070e9afcbaa992c75817009ee3f4b63a0.zip"],
+)
+
+# Pull in all gRPC dependencies.
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+
+grpc_deps()
+
+http_archive(
+    name = "remote_apis",
+    sha256 = "d242ff05ab0fe97a8d4c75cef0a518701abf6c01093050108553a0b60c931f68",
+    strip_prefix = "remote-apis-3a21deee813d0b98aaeef9737c720e509e10dc8b",
+    url = "https://github.com/bazelbuild/remote-apis/archive/3a21deee813d0b98aaeef9737c720e509e10dc8b.zip",
+)
+
+http_archive(
+    name = "googleapis",
+    build_file = "@remote_apis//:external/BUILD.googleapis",
+    sha256 = "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d",
+    strip_prefix = "googleapis-143084a2624b6591ee1f9d23e7f5241856642f4d",
+    urls = ["https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip"],
+)

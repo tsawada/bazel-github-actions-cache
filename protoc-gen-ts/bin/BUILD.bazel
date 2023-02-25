@@ -1,0 +1,6 @@
+load("@npm//:protoc-gen-ts/package_json.bzl", "bin")
+
+bin.protoc_gen_ts_binary(
+    name = "protoc-gen-ts",
+    visibility = ["//visibility:public"],
+)

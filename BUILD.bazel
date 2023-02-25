@@ -2,6 +2,7 @@ load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("//:node_modules/protoc-gen-ts/index.bzl", "ts_proto_library")
 
 npm_link_all_packages(name = "node_modules")
 
@@ -9,12 +10,16 @@ ts_project(
     name = "main",
     srcs = [
         "src/ActionsCache.ts",
+        "src/GrpcServer_patched.ts",
         "src/HttpServer.ts",
-        "src/main.ts",
+        "src/main_patched.ts",
     ],
+    declaration = True,
     deps = [
+        ":remote_execution_ts",
         "//:node_modules/@actions/core",
         "//:node_modules/@actions/http-client",
+        "//:node_modules/@grpc/grpc-js",
         "//:node_modules/@types/node",
     ],
 )
@@ -22,7 +27,7 @@ ts_project(
 esbuild(
     name = "main_bundle",
     srcs = [":main"],
-    entry_point = "src/main.js",
+    entry_point = "src/main_patched.js",
     minify = True,
     platform = "node",
     sourcemap = "external",
@@ -31,4 +36,68 @@ esbuild(
 write_source_files(
     name = "dist",
     files = {"dist/main.js": ":main_bundle.js"},
+)
+
+genrule(
+    name = "patch_bazel-bin",
+    srcs = ["src/GrpcServer.ts"],
+    outs = ["src/GrpcServer_patched.ts"],
+    cmd = "cat $< | sed -e 's!bazel-bin/!!' > $@",
+)
+
+genrule(
+    name = "patch2",
+    srcs = ["src/main.ts"],
+    outs = ["src/main_patched.ts"],
+    cmd = "cat $< | sed -e 's/GrpcServer/GrpcServer_patched/' > $@",
+)
+
+ts_proto_library(
+    name = "remote_execution_ts_proto",
+    outs = [
+        "build/bazel/remote/execution/v2/remote_execution.ts",
+        "build/bazel/semver/semver.ts",
+        "google/api/annotations.ts",
+        "google/api/http.ts",
+        "google/longrunning/operations.ts",
+        "google/protobuf/any.ts",
+        "google/protobuf/descriptor.ts",
+        "google/protobuf/duration.ts",
+        "google/protobuf/empty.ts",
+        "google/protobuf/timestamp.ts",
+        "google/protobuf/wrappers.ts",
+        "google/rpc/status.ts",
+    ],
+    deps = [
+        "@remote_apis//build/bazel/remote/execution/v2:remote_execution_proto",
+    ],
+)
+
+ts_project(
+    name = "remote_execution_ts",
+    srcs = [
+        "build/bazel/remote/execution/v2/remote_execution.ts",
+        "build/bazel/semver/semver.ts",
+        "google/api/annotations.ts",
+        "google/api/http.ts",
+        "google/longrunning/operations.ts",
+        "google/protobuf/any.ts",
+        "google/protobuf/descriptor.ts",
+        "google/protobuf/duration.ts",
+        "google/protobuf/empty.ts",
+        "google/protobuf/timestamp.ts",
+        "google/protobuf/wrappers.ts",
+        "google/rpc/status.ts",
+    ],
+    declaration = True,
+    extends = "tsconfig.json",
+    tsconfig = {
+        "compilerOptions": {
+            "strict": False,
+        },
+    },
+    deps = [
+        "//:node_modules/@grpc/grpc-js",
+        "//:node_modules/@types/google-protobuf",
+    ],
 )
