@@ -3,15 +3,23 @@ workspace(name = "com_github_tsawada_bazel_github_actions_cache")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
-    name = "aspect_rules_js",
-    sha256 = "dda5fee3926e62c483660b35b25d1577d23f88f11a2775e3555b57289f4edb12",
-    strip_prefix = "rules_js-1.6.9",
-    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.6.9.tar.gz",
+    name = "aspect_rules_ts",
+    sha256 = "97a8246bf6d1c7077b296e90a6e307bf8eabed02c5bca84d46db81efbf6ead41",
+    strip_prefix = "rules_ts-2.4.0",
+    url = "https://github.com/aspect-build/rules_ts/releases/download/v2.4.0/rules_ts-v2.4.0.tar.gz",
 )
+
+load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
+
+rules_ts_dependencies(ts_version_from = "//:package.json")
 
 load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 
 rules_js_dependencies()
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
 
 load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
 
@@ -31,17 +39,6 @@ npm_translate_lock(
 load("@npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
-
-http_archive(
-    name = "aspect_rules_ts",
-    sha256 = "f3f0d0a92b0069f8d1bf6a0e26408bd591a8626166db3f88e8d971ffed8f59ba",
-    strip_prefix = "rules_ts-1.0.0",
-    url = "https://github.com/aspect-build/rules_ts/archive/refs/tags/v1.0.0.tar.gz",
-)
-
-load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
-
-rules_ts_dependencies(ts_version_from = "//:package.json")
 
 http_archive(
     name = "aspect_rules_esbuild",
