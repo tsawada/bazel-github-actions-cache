@@ -23,4 +23,6 @@ build --experimental_allow_tags_propagation
 
 build --experimental_repository_cache_hardlinks
 
+common --enable_bzlmod
+
 try-import %workspace%/.bazelrc.user
