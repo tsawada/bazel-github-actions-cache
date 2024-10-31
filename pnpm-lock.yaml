@@ -1,56 +1,63 @@
-lockfileVersion: 5.4
+lockfileVersion: '6.0'
 
-specifiers:
-  '@actions/core': ^1.10.0
-  '@actions/http-client': ^2.0.1
-  '@tsconfig/node16': ^1.0.3
-  '@types/node': ^18.6.2
-  typescript: 4.7.4
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
 
 dependencies:
-  '@actions/core': 1.10.0
-  '@actions/http-client': 2.0.1
+  '@actions/core':
+    specifier: ^1.10.0
+    version: 1.10.0
+  '@actions/http-client':
+    specifier: ^2.0.1
+    version: 2.0.1
 
 devDependencies:
-  '@tsconfig/node16': 1.0.3
-  '@types/node': 18.7.1
-  typescript: 4.7.4
+  '@tsconfig/node16':
+    specifier: ^1.0.3
+    version: 1.0.3
+  '@types/node':
+    specifier: ^18.6.2
+    version: 18.7.1
+  typescript:
+    specifier: 5.4.5
+    version: 5.4.5
 
 packages:
 
-  /@actions/core/1.10.0:
+  /@actions/core@1.10.0:
     resolution: {integrity: sha512-2aZDDa3zrrZbP5ZYg159sNoLRb61nQ7awl5pSvIq5Qpj81vwDzdMRKzkWJGJuwVvWpvZKx7vspJALyvaaIQyug==}
     dependencies:
       '@actions/http-client': 2.0.1
       uuid: 8.3.2
     dev: false
 
-  /@actions/http-client/2.0.1:
+  /@actions/http-client@2.0.1:
     resolution: {integrity: sha512-PIXiMVtz6VvyaRsGY268qvj57hXQEpsYogYOu2nrQhlf+XCGmZstmuZBbAybUl1nQGnvS1k1eEsQ69ZoD7xlSw==}
     dependencies:
       tunnel: 0.0.6
     dev: false
 
-  /@tsconfig/node16/1.0.3:
+  /@tsconfig/node16@1.0.3:
     resolution: {integrity: sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==}
     dev: true
 
-  /@types/node/18.7.1:
+  /@types/node@18.7.1:
     resolution: {integrity: sha512-GKX1Qnqxo4S+Z/+Z8KKPLpH282LD7jLHWJcVryOflnsnH+BtSDfieR6ObwBMwpnNws0bUK8GI7z0unQf9bARNQ==}
     dev: true
 
-  /tunnel/0.0.6:
+  /tunnel@0.0.6:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
     engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
     dev: false
 
-  /typescript/4.7.4:
-    resolution: {integrity: sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==}
-    engines: {node: '>=4.2.0'}
+  /typescript@5.4.5:
+    resolution: {integrity: sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==}
+    engines: {node: '>=14.17'}
     hasBin: true
     dev: true
 
-  /uuid/8.3.2:
+  /uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
     dev: false
