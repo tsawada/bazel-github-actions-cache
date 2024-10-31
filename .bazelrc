@@ -11,7 +11,7 @@ build --incompatible_remote_results_ignore_disk
 build --incompatible_default_to_explicit_init_py
 build --noexperimental_check_output_files
 test --test_verbose_timeout_warnings
-build --incompatible_remote_build_event_upload_respect_no_cache
+build --experimental_remote_build_event_upload=minimal
 build --experimental_reuse_sandbox_directories
 
 build --experimental_inprocess_symlink_creation
