@@ -25,4 +25,7 @@ build --experimental_repository_cache_hardlinks
 
 common --enable_bzlmod
 
+common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+common --@aspect_rules_ts//ts:default_to_tsc_transpiler
+
 try-import %workspace%/.bazelrc.user
