@@ -32,11 +32,13 @@ function isSuccessfulStatusCode(statusCode?: number): boolean {
 export class ActionsCache {
     baseUrl: string
     token: string
+    version: string
     httpClient: HttpClient
 
-    constructor(baseUrl: string, token: string) {
+    constructor(baseUrl: string, token: string, version: string) {
         this.baseUrl = baseUrl
         this.token = token
+        this.version = version
         this.httpClient = new HttpClient(
             'bazel-github-actions-cache',
             [new BearerCredentialHandler(token)],
@@ -50,10 +52,9 @@ export class ActionsCache {
 
     async putCache(type: string, hash: string, size: number, stream: NodeJS.ReadableStream): Promise<boolean> {
         const key = `${type}-${hash}`
-        const version = 'b'
         const reserveCacheRequest: ReserveCacheRequest = {
             key: key,
-            version: version,
+            version: this.version,
             cacheSize: size
         }
         const r = await this.httpClient.postJson<ReserveCacheResponse>(`${this.baseUrl}caches`, reserveCacheRequest)
@@ -83,9 +84,8 @@ export class ActionsCache {
 
     async getCache(type: string, hash: string): Promise<NodeJS.ReadableStream | null> {
         const key = `${type}-${hash}`
-        const version = 'b'
 
-        const r = await this.httpClient.getJson<ArtifactCacheEntry>(`${this.baseUrl}cache?keys=${key}&version=${version}`)
+        const r = await this.httpClient.getJson<ArtifactCacheEntry>(`${this.baseUrl}cache?keys=${key}&version=${this.version}`)
         const archiveLocation = r?.result?.archiveLocation
         if (!archiveLocation) {
             // debug(`Entry failed: ${r.statusCode}`)
