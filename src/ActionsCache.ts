@@ -88,7 +88,7 @@ export class ActionsCache {
         return true
     }
 
-    async getCache(type: string, hash: string): Promise<NodeJS.ReadableStream | null> {
+    async getCache(type: string, hash: string): Promise<string | null> {
         const key = `${type}-${hash}`
 
         const r = await this.httpClient.getJson<ArtifactCacheEntry>(`${this.baseUrl}cache?keys=${key}&version=${this.version}`)
@@ -97,14 +97,6 @@ export class ActionsCache {
             // debug(`Entry failed: ${r.statusCode}`)
             return null
         }
-
-        const hc = new HttpClient('bazel-github-actions-cache')
-        const res = await hc.get(archiveLocation)
-        if (!isSuccessfulStatusCode(res.message.statusCode)) {
-            // debug(`Blob failed: ${res.message.statusMessage}`)
-            res.message.resume()
-            return null
-        }
-        return res.message
+        return archiveLocation
     }
 }

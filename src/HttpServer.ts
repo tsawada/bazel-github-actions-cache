@@ -58,22 +58,16 @@ export class HttpServer extends http.Server {
             response.end()
         } else if (request.method == 'GET') {
             this.n_get += 1
-            let stream: NodeJS.ReadableStream | null = null
-            try {
-                stream = await this.actionsCache.getCache(type, hash)
-            } catch (e) {
-                // debug("get exc: " + e.message)
-            }
-            if (stream) {
+            let url = await this.actionsCache.getCache(type, hash)
+            if (url) {
                 this.n_get_hit += 1
-                response.writeHead(200, {
-                    'Content-Type': 'application/octet-stream'
+                response.writeHead(302, 'Found', {
+                    Location: url
                 })
-                stream.pipe(response)
             } else {
                 response.writeHead(404)
-                response.end()
             }
+            response.end()
         }
     }
 
