@@ -1,6 +1,7 @@
 import * as http from 'http'
 import { parse } from 'url'
 import { ActionsCache } from './ActionsCache'
+import { HttpClientError } from '@actions/http-client'
 
 export class HttpServer extends http.Server {
     n_get: number = 0
@@ -34,6 +35,19 @@ export class HttpServer extends http.Server {
         response.end(JSON.stringify(this.getStats()))
     }
 
+    handle_error(e: any, response: http.ServerResponse) {
+        if (e instanceof HttpClientError) {
+            response.writeHead(e.statusCode, e.message)
+            response.write(e.result)
+        } else if (e instanceof Error) {
+            response.writeHead(500, "Internal Server Error")
+            response.write(e)
+        } else {
+            response.writeHead(500, "Internal Server Error")
+        }
+        response.end()
+    }
+
     async get_cas(request: http.IncomingMessage, response: http.ServerResponse) {
         const url = parse(request.url ?? '');
         const cas = url.pathname?.startsWith('/cas/') ?? false
@@ -46,7 +60,8 @@ export class HttpServer extends http.Server {
             try {
                 succ = await this.actionsCache.putCache(type, hash, size, request)
             } catch (e) {
-                // debug("put exc: " + e.message)
+                this.handle_error(e, response)
+                return
             }
             if (succ) {
                 this.n_put_succ += 1
@@ -62,7 +77,8 @@ export class HttpServer extends http.Server {
             try {
                 stream = await this.actionsCache.getCache(type, hash)
             } catch (e) {
-                // debug("get exc: " + e.message)
+                this.handle_error(e, response)
+                return
             }
             if (stream) {
                 this.n_get_hit += 1
