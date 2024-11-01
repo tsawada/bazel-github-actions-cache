@@ -26,8 +26,9 @@ function main() {
     const actions_cache_url = process.env.ACTIONS_CACHE_URL || 'http://localhost:3056/';
     const baseUrl = `${ actions_cache_url }_apis/artifactcache/`;
     const token = process.env.ACTIONS_RUNTIME_TOKEN ?? '';
+    const version = process.env.INPUT_VERSION ?? '7562522d0ae9a33373e8d759b6d20a810f959412ae8f80278a433f2f7eb2de78'
 
-    const actionsCache = new ActionsCache(baseUrl, token);
+    const actionsCache = new ActionsCache(baseUrl, token, version);
     const httpServer = new HttpServer(actionsCache);
 
     httpServer.on('close', () => {

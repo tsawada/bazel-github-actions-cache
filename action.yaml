@@ -1,6 +1,12 @@
 name: bazel-github-actions-cache
 description: Github Actions cache for Bazel
+inputs:
+  version:
+    description: A string to identify the key namespace in Github Actions cache
+    required: false
+    default: '7562522d0ae9a33373e8d759b6d20a810f959412ae8f80278a433f2f7eb2de78'
 runs:
   using: 'node20'
   main: 'dist/main.js'
   post: 'dist/post.js'
+
