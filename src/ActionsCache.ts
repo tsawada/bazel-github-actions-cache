@@ -52,6 +52,12 @@ export class ActionsCache {
 
     async putCache(type: string, hash: string, size: number, stream: NodeJS.ReadableStream): Promise<boolean> {
         const key = `${type}-${hash}`
+        // check if the key already exists
+        const head = await this.httpClient.head(`${this.baseUrl}cache?keys=${key}&version=${this.version}`)
+        if (isSuccessfulStatusCode(head.message.statusCode)) {
+            head.message.resume()
+            return true
+        }
         const reserveCacheRequest: ReserveCacheRequest = {
             key: key,
             version: this.version,
