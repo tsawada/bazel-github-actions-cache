@@ -55,12 +55,8 @@ export class ActionsCache {
             'Content-Type': 'application/octet-stream',
             'Content-Range': `bytes 0-${size-1}/*`
         })
-        if (!isSuccessfulStatusCode(r.message.statusCode)) {
-            // debug(`Upload failed: ${upload.message.statusMessage}`)
-            stream.resume()
-            return false
-        }
-        return true
+        r.message.resume()
+        return isSuccessfulStatusCode(r.message.statusCode)
     }
 
     async commit(cacheId: number, size: number): Promise<boolean> {
@@ -75,6 +71,7 @@ export class ActionsCache {
     async exists(type: string, hash: string): Promise<boolean> {
         const key = `${type}-${hash}`
         const head = await this.httpClient.head(`${this.baseUrl}cache?keys=${key}&version=${this.version}`)
+        head.message.resume()
         return isSuccessfulStatusCode(head.message.statusCode)
     }
 

@@ -15,8 +15,8 @@ export class HttpServer extends http.Server {
     constructor(actionsCache: ActionsCache) {
         super()
         this.actionsCache = actionsCache
-        this.on('request', this.onRequest)
         this.httpClient = new HttpClient('bazel-github-actions-cache')
+        this.on('request', this.onRequest)
     }
 
     getStats() {
@@ -30,6 +30,7 @@ export class HttpServer extends http.Server {
     }
 
     get_close(request: http.IncomingMessage, response: http.ServerResponse) {
+        request.resume()
         this.close()
         response.writeHead(200, {
             "Content-type": "application/json"
@@ -114,8 +115,10 @@ export class HttpServer extends http.Server {
             const size = Number(request.headers['content-length'])
             await this.put_cache(type, hash, size, request, response)
         } else if (request.method == 'GET') {
+            request.resume()
             await this.get_cache(type, hash, response)
         } else {
+            request.resume()
             response.writeHead(405, "Method Not Allowed")
             response.end()
         }
@@ -125,13 +128,11 @@ export class HttpServer extends http.Server {
         const url = parse(request.url ?? '');
         if (url.pathname == '/close') {
             this.get_close(request, response)
-        } else if (url.pathname?.startsWith('/_apis/artifactcache/')) {
-            response.writeHead(404);
-            response.end();
         } else if (url.pathname?.startsWith('/cas/') || url.pathname?.startsWith('/ac/')) {
             this.cache(request, response)
         } else {
-            response.writeHead(404);
+            request.resume()
+            response.writeHead(404, "Not Found");
             response.end();
         }
     }
