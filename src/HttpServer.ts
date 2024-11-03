@@ -30,7 +30,6 @@ export class HttpServer extends http.Server {
     }
 
     get_close(request: http.IncomingMessage, response: http.ServerResponse) {
-        request.resume()
         this.close()
         response.writeHead(200, {
             "Content-type": "application/json"
@@ -87,11 +86,13 @@ export class HttpServer extends http.Server {
             }
             const cacheId = await this.actionsCache.reserve(type, hash, size)
             if (!cacheId) {
+                stream.resume()
                 response.writeHead(500)
                 response.end()
                 return
             }
             if (!await this.actionsCache.upload(cacheId, size, stream)) {
+                stream.resume()
                 response.writeHead(500)
                 response.end()
                 return
@@ -115,10 +116,8 @@ export class HttpServer extends http.Server {
             const size = Number(request.headers['content-length'])
             await this.put_cache(type, hash, size, request, response)
         } else if (request.method == 'GET') {
-            request.resume()
             await this.get_cache(type, hash, response)
         } else {
-            request.resume()
             response.writeHead(405, "Method Not Allowed")
             response.end()
         }
@@ -131,7 +130,6 @@ export class HttpServer extends http.Server {
         } else if (url.pathname?.startsWith('/cas/') || url.pathname?.startsWith('/ac/')) {
             this.cache(request, response)
         } else {
-            request.resume()
             response.writeHead(404, "Not Found");
             response.end();
         }
