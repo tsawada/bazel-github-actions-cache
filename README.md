@@ -22,3 +22,4 @@ Add following flag to Bazel.
 * Proper error handling
 * Compression
 * gRPC interface
+
