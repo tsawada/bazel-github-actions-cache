@@ -8,16 +8,6 @@ interface ArtifactCacheEntry {
     archiveLocation?: string
 }
 
-interface CommitCacheRequest {
-    size: number
-}
-
-interface ReserveCacheRequest {
-    key: string
-    version?: string
-    cacheSize?: number
-}
-
 interface ReserveCacheResponse {
     cacheId: number
 }
@@ -50,37 +40,27 @@ export class ActionsCache {
         )
     }
 
-    async putCache(type: string, hash: string, size: number, stream: NodeJS.ReadableStream): Promise<boolean> {
+    async reserve(type: string, hash: string, size: number): Promise<number | undefined> {
         const key = `${type}-${hash}`
-        // check if the key already exists
-        const head = await this.httpClient.head(`${this.baseUrl}cache?keys=${key}&version=${this.version}`)
-        if (isSuccessfulStatusCode(head.message.statusCode)) {
-            head.message.resume()
-            return true
-        }
-        const reserveCacheRequest: ReserveCacheRequest = {
+        const r = await this.httpClient.postJson<ReserveCacheResponse>(`${this.baseUrl}caches`, {
             key: key,
             version: this.version,
             cacheSize: size
-        }
-        const r = await this.httpClient.postJson<ReserveCacheResponse>(`${this.baseUrl}caches`, reserveCacheRequest)
-        const cacheId = r?.result?.cacheId
-        if (!cacheId) {
-            // debug(`ReserveCache failed: ${r.statusCode}`)
-            stream.resume()
-            return false;
-        }
-        const upload = await this.httpClient.sendStream('PATCH', `${this.baseUrl}caches/${cacheId}`, stream, {
+        })
+        return r.result?.cacheId
+    }
+
+    async upload(cacheId: number, size: number, stream: NodeJS.ReadableStream): Promise<boolean> {
+        const r = await this.httpClient.sendStream('PATCH', `${this.baseUrl}caches/${cacheId}`, stream, {
             'Content-Type': 'application/octet-stream',
             'Content-Range': `bytes 0-${size-1}/*`
         })
-        if (!isSuccessfulStatusCode(upload.message.statusCode)) {
-            // debug(`Upload failed: ${upload.message.statusMessage}`)
-            stream.resume()
-            return false
-        }
-        const commitCacheRequest: CommitCacheRequest = { size: size }
-        const commit = await this.httpClient.postJson<null>(`${this.baseUrl}caches/${cacheId}`, commitCacheRequest)
+        r.message.resume()
+        return isSuccessfulStatusCode(r.message.statusCode)
+    }
+
+    async commit(cacheId: number, size: number): Promise<boolean> {
+        const commit = await this.httpClient.postJson<null>(`${this.baseUrl}caches/${cacheId}`, { size: size })
         if (!isSuccessfulStatusCode(commit.statusCode)) {
             // core.debug(`Commit failed: ${commit.statusCode}`)
             return false
@@ -88,23 +68,16 @@ export class ActionsCache {
         return true
     }
 
-    async getCache(type: string, hash: string): Promise<NodeJS.ReadableStream | null> {
+    async exists(type: string, hash: string): Promise<boolean> {
         const key = `${type}-${hash}`
+        const head = await this.httpClient.head(`${this.baseUrl}cache?keys=${key}&version=${this.version}`)
+        head.message.resume()
+        return isSuccessfulStatusCode(head.message.statusCode)
+    }
 
+    async getLocation(type: string, hash: string): Promise<string | undefined> {
+        const key = `${type}-${hash}`
         const r = await this.httpClient.getJson<ArtifactCacheEntry>(`${this.baseUrl}cache?keys=${key}&version=${this.version}`)
-        const archiveLocation = r?.result?.archiveLocation
-        if (!archiveLocation) {
-            // debug(`Entry failed: ${r.statusCode}`)
-            return null
-        }
-
-        const hc = new HttpClient('bazel-github-actions-cache')
-        const res = await hc.get(archiveLocation)
-        if (!isSuccessfulStatusCode(res.message.statusCode)) {
-            // debug(`Blob failed: ${res.message.statusMessage}`)
-            res.message.resume()
-            return null
-        }
-        return res.message
+        return r?.result?.archiveLocation
     }
 }
