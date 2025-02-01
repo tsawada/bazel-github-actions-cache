@@ -11,7 +11,7 @@ build --incompatible_remote_results_ignore_disk
 build --incompatible_default_to_explicit_init_py
 build --noexperimental_check_output_files
 test --test_verbose_timeout_warnings
-build --experimental_remote_build_event_upload=minimal
+build --remote_build_event_upload=minimal
 build --experimental_reuse_sandbox_directories
 
 build --experimental_inprocess_symlink_creation
@@ -22,8 +22,6 @@ build --sandbox_fake_hostname --sandbox_fake_username
 build --experimental_allow_tags_propagation
 
 build --experimental_repository_cache_hardlinks
-
-common --enable_bzlmod
 
 common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
 common --@aspect_rules_ts//ts:default_to_tsc_transpiler
